@@ -63,7 +63,7 @@ button{cursor:pointer}
 .listhead h3{cursor:pointer;user-select:none}
 .listhead h3::before{content:'▾ ';font-size:10px}
 .sec.closed .listhead h3::before{content:'▸ '}
-.sec.closed #list,.sec.closed .selbar{display:none}
+.sec.closed #list,.sec.closed .selbar,.sec.closed .colbody{display:none}
 .selbar{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted);margin-top:6px}
 .row:first-of-type{border-top:0}
 .row.sel{background:var(--accent-soft);margin:0 -16px;padding:8px 16px}
@@ -231,19 +231,21 @@ code{background:#f1eee9;border-radius:4px;padding:1px 5px;font-size:12.5px}
         </select></div>
       <p class="hint" style="margin:4px 0 0">Changing sizes re-packs the sheets. Do any dragging/fine-tuning last (Undo is there if needed).</p>
     </div>
+    <div class="sec" id="imgSec">
+      <div class="listhead"><h3 id="listTitle" style="margin:0" title="Show / hide">Images</h3><button class="linkbtn" id="clearBtn">Remove all</button></div>
+      <div class="selbar"><button class="linkbtn" id="selAll">Select all</button><button class="linkbtn" id="selNone">Clear selection</button><span id="selCount"></span></div>
+      <div id="list" style="margin-top:4px"></div>
+    </div>
     <div class="sec" id="colSec">
-      <h3>Collage</h3>
+      <div class="listhead"><h3 id="colTitle" style="margin:0" title="Show / hide">Collage</h3></div>
+      <div class="colbody" style="margin-top:10px">
       <p class="hint" id="colSrc" style="margin:0 0 8px"></p>
       <div class="field"><label>Wall space</label><span><input type="number" id="wallW" min="20" max="600" step="5"> × <input type="number" id="wallH" min="20" max="600" step="5"> cm</span></div>
       <div class="field"><label>Gap between posters</label><span><input type="number" id="wallGap" min="0" max="30" step="0.5"> cm</span></div>
       <label class="check"><input type="checkbox" id="cropIn"><span>Allow cropping so edges line up</span></label>
       <label class="check"><input type="checkbox" id="mapIn"><span>Add a wall map page to the PDF</span></label>
       <div class="cards" id="colCards"></div>
-    </div>
-    <div class="sec" id="imgSec">
-      <div class="listhead"><h3 id="listTitle" style="margin:0" title="Show / hide">Images</h3><button class="linkbtn" id="clearBtn">Remove all</button></div>
-      <div class="selbar"><button class="linkbtn" id="selAll">Select all</button><button class="linkbtn" id="selNone">Clear selection</button><span id="selCount"></span></div>
-      <div id="list" style="margin-top:4px"></div>
+      </div>
     </div>
     <div class="foot hint">
       <b style="color:var(--ink)">Printing:</b> ask the shop to print at <b style="color:var(--ink)">actual size / 100%</b> — not “fit to page”.<br>
@@ -725,6 +727,7 @@ $('#list').addEventListener('click', e => {
   select(id, 'item', e.ctrlKey || e.metaKey || e.shiftKey);
 });
 $('#listTitle').onclick = () => $('#imgSec').classList.toggle('closed');
+$('#colTitle').onclick = () => $('#colSec').classList.toggle('closed');
 $('#selAll').onclick = () => { selSet = new Set(images.map(i => i.id)); selected = images.length ? images[images.length-1].id : null; render(); };
 $('#selNone').onclick = () => { select(null); };
 $('#clearBtn').onclick = () => { if (!images.length) return; snapshot(); images=[]; sheets=[]; selected=null; selSet.clear(); render(); toast('Removed all — Undo brings them back'); };
@@ -1066,7 +1069,7 @@ function renderCollage(){
   $('#colCards').innerHTML = src.length < 2 ? '' : lastSuggest.map((c,i) =>
     `<button class="card${preview && preview.key===c.key ? ' on':''}" data-i="${i}">${miniHTML(c.P, 150)}<b>${c.name}</b><span>${c.why}</span><span>${c.note}</span></button>`).join('');
 }
-function openCollage(){ const sec = $('#colSec'); sec.scrollIntoView({behavior:'smooth', block:'start'}); sec.animate([{background:'#e3efed'},{background:'transparent'}], {duration:1200}); }
+function openCollage(){ const sec = $('#colSec'); sec.classList.remove('closed'); sec.scrollIntoView({behavior:'smooth', block:'start'}); sec.animate([{background:'#e3efed'},{background:'transparent'}], {duration:1200}); }
 $('#colCards').addEventListener('click', e => {
   const c = e.target.closest('.card'); if (!c) return;
   const sug = lastSuggest[+c.dataset.i]; if (!sug) return;
