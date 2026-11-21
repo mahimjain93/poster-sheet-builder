@@ -6,6 +6,8 @@ Turn a pile of downloaded Pinterest pins into print-ready poster sheets.
 - Pick how they'll be seen (up close / on a wall / across the room) and a Sharpest ↔ Biggest slider
 - Each image is sized as large as it can print without pixelating, then packed onto A3 (or A2/A4/A5, 12×18 in, 13×19 in) sheets with white gaps
 - Drag images within a sheet, across sheets, to a parking area or onto a new sheet; cm rulers on every sheet
+- Click an image for a floating toolbar (exact width in cm, presets, turn, move, crop reset); Ctrl/Shift-click or tick several to change them together
+- **Collage**: pick images, set your wall space, and get suggested wall layouts (grid, hero + sides, masonry, gallery rows, in a line) sized to each image's resolution; preview on a wall before applying — posters stay separate prints, with a wall map page in the PDF
 - Download a print PDF, an editable .pptx (PowerPoint / Google Slides / import into Canva), or save the project to continue later
 
 Everything runs in the browser — images never leave your computer. It's a single `index.html` with no build step.

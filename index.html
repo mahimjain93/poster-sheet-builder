@@ -54,10 +54,20 @@ button{cursor:pointer}
 /* image list */
 .listhead{display:flex;align-items:center;justify-content:space-between}
 .linkbtn{border:0;background:none;color:var(--muted);padding:0;font-size:12px;text-decoration:underline}
-.row{display:grid;grid-template-columns:52px 1fr 22px;gap:10px;padding:10px 0;border-top:1px solid var(--line);align-items:start}
+.row{display:grid;grid-template-columns:18px 44px 1fr 22px;gap:8px;padding:8px 0;border-top:1px solid var(--line);align-items:start}
+.row .pick{margin-top:14px;accent-color:var(--accent)}
+.row .rctl{display:none}
+.row.open .rctl{display:flex}
+.chev{border:0;background:none;color:var(--muted);font-size:12px;padding:2px 0;margin-top:3px}
+.chev:hover{color:var(--ink)}
+.listhead h3{cursor:pointer;user-select:none}
+.listhead h3::before{content:'▾ ';font-size:10px}
+.sec.closed .listhead h3::before{content:'▸ '}
+.sec.closed #list,.sec.closed .selbar{display:none}
+.selbar{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted);margin-top:6px}
 .row:first-of-type{border-top:0}
-.row.sel{background:var(--accent-soft);margin:0 -16px;padding:10px 16px}
-.thumb{width:52px;height:52px;object-fit:cover;border-radius:6px;background:#ddd;cursor:pointer}
+.row.sel{background:var(--accent-soft);margin:0 -16px;padding:8px 16px}
+.thumb{width:44px;height:44px;object-fit:cover;border-radius:6px;background:#ddd;cursor:pointer}
 .rname{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:250px}
 .rsub{color:var(--muted);font-size:12px;margin-top:1px}
 .qual{font-size:12.5px;margin-top:3px;font-weight:500}
@@ -83,8 +93,10 @@ button{cursor:pointer}
 .sheet{position:relative;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.08);overflow:hidden;touch-action:none}
 .guide{position:absolute;border:1px dashed #e4e0d9;pointer-events:none}
 .item{position:absolute;cursor:grab;outline:1px solid rgba(0,0,0,.06);overflow:hidden;touch-action:none}
-.item img{position:absolute;left:0;top:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
-.item img.rot{left:50%;top:50%;transform:translate(-50%,-50%) rotate(90deg)}
+/* .inner = the image-oriented box (turned 90° when the item is turned); the img inside is offset to show the cropped region */
+.inner{position:absolute;left:0;top:0;overflow:hidden;pointer-events:none}
+.inner.rot{left:50%;top:50%;transform:translate(-50%,-50%) rotate(90deg)}
+.inner img{position:absolute;max-width:none;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
 .item:hover{outline:2px solid rgba(31,95,91,.55)}
 .item.sel{outline:2px solid var(--accent);z-index:3}
 .item.clash{outline:2px solid var(--bad);z-index:2}
@@ -132,8 +144,26 @@ code{background:#f1eee9;border-radius:4px;padding:1px 5px;font-size:12.5px}
 .droptarget{outline:3px solid var(--accent)!important;outline-offset:2px}
 .item.ghosted{opacity:.25}
 .ghost{position:fixed;z-index:80;pointer-events:none;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.28);outline:2px solid var(--accent);opacity:.92}
-.ghost img{position:absolute;left:0;top:0;width:100%;height:100%}
-.ghost img.rot{left:50%;top:50%;transform:translate(-50%,-50%) rotate(90deg)}
+
+/* collage */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.card{border:1px solid var(--line);border-radius:9px;background:#fff;padding:7px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:5px}
+.card:hover{border-color:#b9b2a6}
+.card.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.card b{font-size:12.5px}
+.card span{font-size:11.5px;color:var(--muted);line-height:1.35}
+.minip{position:relative;background:#e7e1d7;border-radius:4px;overflow:hidden;width:100%}
+.minip div,.wall .witem{position:absolute;background-repeat:no-repeat}
+.minip div{box-shadow:0 0 0 .5px rgba(0,0,0,.15)}
+.modeseg{margin-right:6px}
+.wallwrap{display:grid;gap:0;margin-top:6px}
+.wall{position:relative;background:linear-gradient(180deg,#efeae2,#e6e0d6);box-shadow:inset 0 0 0 1px #d8d1c5;overflow:visible}
+.wall .area{position:absolute;inset:0;border:1px dashed rgba(0,0,0,.18);pointer-events:none}
+.witem{cursor:grab;box-shadow:0 2px 6px rgba(0,0,0,.25),0 0 0 1px rgba(0,0,0,.05);touch-action:none}
+.witem.sel{outline:2px solid var(--accent);outline-offset:2px;z-index:3}
+.witem .q{position:absolute;top:4px;left:4px;width:9px;height:9px;border-radius:50%;border:1.5px solid #fff}
+.pbanner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:10px 12px;margin-bottom:14px}
+.pbanner .grow{flex:1;min-width:200px;line-height:1.4}
 /* floating image toolbar */
 .imgbar{position:fixed;z-index:65;display:none;align-items:center;gap:4px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.16);padding:5px 6px;font-size:12.5px;max-width:min(900px,calc(100vw - 24px))}
 .imgbar.show{display:flex}
@@ -201,9 +231,19 @@ code{background:#f1eee9;border-radius:4px;padding:1px 5px;font-size:12.5px}
         </select></div>
       <p class="hint" style="margin:4px 0 0">Changing sizes re-packs the sheets. Do any dragging/fine-tuning last (Undo is there if needed).</p>
     </div>
-    <div class="sec">
-      <div class="listhead"><h3 id="listTitle" style="margin:0">Images</h3><button class="linkbtn" id="clearBtn">Remove all</button></div>
-      <div id="list" style="margin-top:8px"></div>
+    <div class="sec" id="colSec">
+      <h3>Collage</h3>
+      <p class="hint" id="colSrc" style="margin:0 0 8px"></p>
+      <div class="field"><label>Wall space</label><span><input type="number" id="wallW" min="20" max="600" step="5"> × <input type="number" id="wallH" min="20" max="600" step="5"> cm</span></div>
+      <div class="field"><label>Gap between posters</label><span><input type="number" id="wallGap" min="0" max="30" step="0.5"> cm</span></div>
+      <label class="check"><input type="checkbox" id="cropIn"><span>Allow cropping so edges line up</span></label>
+      <label class="check"><input type="checkbox" id="mapIn"><span>Add a wall map page to the PDF</span></label>
+      <div class="cards" id="colCards"></div>
+    </div>
+    <div class="sec" id="imgSec">
+      <div class="listhead"><h3 id="listTitle" style="margin:0" title="Show / hide">Images</h3><button class="linkbtn" id="clearBtn">Remove all</button></div>
+      <div class="selbar"><button class="linkbtn" id="selAll">Select all</button><button class="linkbtn" id="selNone">Clear selection</button><span id="selCount"></span></div>
+      <div id="list" style="margin-top:4px"></div>
     </div>
     <div class="foot hint">
       <b style="color:var(--ink)">Printing:</b> ask the shop to print at <b style="color:var(--ink)">actual size / 100%</b> — not “fit to page”.<br>
@@ -241,10 +281,16 @@ const BIAS = [
 const MM_PER_IN = 25.4;
 
 /* ---------- state ---------- */
-let S = {sheet:'A3', orient:'portrait', margin:6, gap:5, view:'wall', cap:'none', rotate:true, zoom:1, bias:2};
+let S = {sheet:'A3', orient:'portrait', margin:6, gap:5, view:'wall', cap:'none', rotate:true, zoom:1, bias:2,
+         wall:{w:1200, h:800, gap:40, crop:true, map:true}};   // collage wall space, in mm
+let stageMode = 'sheets';   // 'sheets' | 'wall'
+let preview = null;         // a collage being previewed on the wall, not yet applied
 let images = [];   // {id,name,pw,ph,blob,url,view,size,customW,own}
 let sheets = [];   // {id,size,orient,items:[{id,iw,ih,rot,x,y}]}
 let uid = 1, selected = null, history = [];
+let selSet = new Set();          // all selected image ids (multi-select); `selected` is the main one
+const openRows = new Set();      // image rows whose settings are expanded
+const isSel = id => selSet.has(id);
 let DL = null;
 
 const $ = s => document.querySelector(s);
@@ -255,12 +301,21 @@ const cm = mm => (mm/10).toFixed(1);
 function sheetWH(sh){ const d = SHEETS[sh.size]; return sh.orient === 'landscape' ? [d.h, d.w] : [d.w, d.h]; }
 function boxWH(it){ return it.rot ? [it.ih, it.iw] : [it.iw, it.ih]; }
 function viewOf(img){ return img.view === 'default' ? S.view : img.view; }
-function sharpDims(img, f){ const dpi = VIEWS[viewOf(img)].dpi * (f ?? 1); return [img.pw/dpi*MM_PER_IN, img.ph/dpi*MM_PER_IN]; }
+// crop = visible part of the source image, as fractions {x,y,w,h}; epw/eph = pixels actually printed
+const FULL = {x:0, y:0, w:1, h:1};
+const cropOf = img => img.crop || FULL;
+const isCropped = img => !!img.crop && (img.crop.w < 0.999 || img.crop.h < 0.999);
+const epw = img => img.pw * cropOf(img).w, eph = img => img.ph * cropOf(img).h;
+function sharpDims(img, f){ const dpi = VIEWS[viewOf(img)].dpi * (f ?? 1); return [epw(img)/dpi*MM_PER_IN, eph(img)/dpi*MM_PER_IN]; }
+function cropImgStyle(img, wPx, hPx){ const c = cropOf(img), W = wPx/c.w, H = hPx/c.h; return `width:${W}px;height:${H}px;left:${-c.x*W}px;top:${-c.y*H}px`; }
+// image-oriented box of iw×ih px, turned if rot
+function innerHTML(img, wPx, hPx, rot){ return `<div class="inner${rot?' rot':''}" style="width:${wPx}px;height:${hPx}px"><img src="${img.url}" draggable="false" style="${cropImgStyle(img,wPx,hPx)}"></div>`; }
+function updateInner(el, img, wPx, hPx){ const inn = el.querySelector('.inner'); if (!inn) return; inn.style.width = wPx+'px'; inn.style.height = hPx+'px'; inn.firstElementChild.style.cssText = cropImgStyle(img,wPx,hPx); }
 function biasF(){ return BIAS[S.bias ?? 2].f; }
 function fitOriented(w,h,bw,bh){ const L=Math.max(bw,bh), Sh=Math.min(bw,bh); const [tw,th] = w>=h ? [L,Sh] : [Sh,L]; const s=Math.min(tw/w, th/h); return [w*s, h*s]; }
 function wantedDims(img){
   let [w,h] = sharpDims(img, biasF());
-  if (img.size === 'custom' && img.customW) return [img.customW, img.customW * img.ph / img.pw];
+  if (img.size === 'custom' && img.customW) return [img.customW, img.customW * eph(img) / epw(img)];
   if (TARGETS[img.size]) return fitOriented(w,h,...TARGETS[img.size]);
   if (img.size === 'full') return [w*1000, h*1000];
   if (S.cap !== 'none'){ const [cw,ch] = fitOriented(w,h,...TARGETS[S.cap]); if (cw < w){ w=cw; h=ch; } }
@@ -275,7 +330,7 @@ function clampToArea(w,h,aw,ah,rot){
   return [w*s, h*s];
 }
 function quality(img, iw){
-  const eff = img.pw / (iw / MM_PER_IN), req = VIEWS[viewOf(img)].dpi, r = eff/req;
+  const eff = epw(img) / (iw / MM_PER_IN), req = VIEWS[viewOf(img)].dpi, r = eff/req;
   return r >= 0.95 ? 'ok' : r >= 0.7 ? 'soft' : 'bad';
 }
 const QTEXT = {ok:'✅ Sharp', soft:'⚠️ Slightly soft', bad:'❌ Will look pixelated'};
@@ -428,17 +483,19 @@ function snapshot(){
 }
 function undo(){
   const h = history.pop(); if (!h) return;
-  S = h.S; images = h.images; sheets = h.sheets; selected = h.selected;
+  S = h.S; images = h.images; sheets = h.sheets; selected = h.selected; selSet = new Set(selected ? [selected] : []);
   $('#undoBtn').disabled = !history.length;
   syncSettings(); render();
 }
 
 /* ---------- rendering ---------- */
 function ppm(){ return S.zoom; } // px per mm
-function render(){ renderStage(); renderList(); renderToolbar(); }
+function render(){ renderStage(); renderList(); renderCollage(); renderToolbar(); }
 
+function modeTabs(){ return `<span class="seg modeseg" id="modeSeg"><button data-mode="sheets" class="${stageMode==='sheets'?'on':''}">Print sheets</button><button data-mode="wall" class="${stageMode==='wall'?'on':''}">Wall</button></span>`; }
 function renderStage(){
   const st = $('#stage');
+  if (images.length && stageMode==='wall'){ renderWall(); return; }
   if (!images.length){
     st.innerHTML = `<div class="empty">
       <h2>Drop your downloaded pins here</h2>
@@ -458,8 +515,7 @@ function renderStage(){
     const items = sh.items.map(it => {
       const img = imgById(it.id); const [bw,bh]=boxWH(it); const q=quality(img,it.iw);
       if (q==='bad') bad++; else if (q==='soft') soft++;
-      const imgStyle = it.rot ? `width:${bh*k}px;height:${bw*k}px` : '';
-      return `<div class="item${cl.has(it.id)?' clash':''}${selected===it.id?' sel':''}" data-sheet="${sh.id}" data-id="${it.id}" style="left:${it.x*k}px;top:${it.y*k}px;width:${bw*k}px;height:${bh*k}px"><img src="${img.url}" draggable="false" class="${it.rot?'rot':''}" style="${imgStyle}"><span class="q ${q}"></span><span class="handle"></span></div>`;
+      return `<div class="item${cl.has(it.id)?' clash':''}${isSel(it.id)?' sel':''}" data-sheet="${sh.id}" data-id="${it.id}" style="left:${it.x*k}px;top:${it.y*k}px;width:${bw*k}px;height:${bh*k}px">${innerHTML(img, it.iw*k, it.ih*k, it.rot)}<span class="q ${q}"></span><span class="handle"></span></div>`;
     }).join('');
     const sizeOpts = Object.entries(SHEETS).map(([key,d]) => `<option value="${key}"${key===sh.size?' selected':''}>${d.n}</option>`).join('');
     return `<div class="sheet-wrap">
@@ -480,8 +536,8 @@ function renderStage(){
   }).join('');
   const parked = images.filter(i => !locate(i.id));
   const filled = sheets.filter(s => s.items.length).length;
-  const trayHTML = parked.map(img => `<img class="parked${selected===img.id?' sel':''}" data-id="${img.id}" src="${img.url}" draggable="false" title="${esc(img.name)}">`).join('');
-  st.innerHTML = `<div class="summary"><span><b>${images.length}</b> image${images.length===1?'':'s'} on <b>${filled}</b> sheet${filled===1?'':'s'}</span>
+  const trayHTML = parked.map(img => `<img class="parked${isSel(img.id)?' sel':''}" data-id="${img.id}" src="${img.url}" draggable="false" title="${esc(img.name)}">`).join('');
+  st.innerHTML = `<div class="summary">${modeTabs()}<span><b>${images.length}</b> image${images.length===1?'':'s'} on <b>${filled}</b> sheet${filled===1?'':'s'}</span>
     ${sheets.length>filled?`<span class="pill soft">${sheets.length-filled} empty sheet${sheets.length-filled>1?'s':''} — delete or fill</span>`:''}
     ${parked.length?`<span class="pill soft">${parked.length} parked (won't print)</span>`:''}
     ${soft?`<span class="pill soft">${soft} slightly soft</span>`:''}${bad?`<span class="pill bad">${bad} will pixelate</span>`:''}
@@ -518,6 +574,7 @@ function updateBands(id){
 
 function renderList(){
   $('#listTitle').textContent = images.length ? `Images (${images.length})` : 'Images';
+  $('#selCount').textContent = selSet.size > 1 ? `${selSet.size} selected` : '';
   const sheetIdx = {}; sheets.forEach((sh,i) => sh.items.forEach(it => sheetIdx[it.id]=i));
   $('#list').innerHTML = images.length ? images.map(img => {
     const loc = locate(img.id); const [sw,sh] = sharpDims(img);
@@ -528,13 +585,15 @@ function renderList(){
     if (img.size==='custom') sizes.push(['custom','Size: custom (dragged)']);
     const sOpt = sizes.map(([v,l]) => `<option value="${v}"${img.size===v?' selected':''}>${l}</option>`).join('');
     const shOpt = sheets.map((_,i) => `<option value="${i}"${sheetIdx[img.id]===i?' selected':''}>On sheet ${i+1}</option>`).join('') + `<option value="new">→ New sheet</option><option value="park"${loc?'':' selected'}>Parked (not printed)</option>`;
-    return `<div class="row${selected===img.id?' sel':''}" data-id="${img.id}">
-      <img class="thumb" src="${img.url}" data-act="pick">
+    return `<div class="row${isSel(img.id)?' sel':''}${openRows.has(img.id)?' open':''}" data-id="${img.id}">
+      <input type="checkbox" class="pick" data-act="check" title="Select (for collage or changing several at once)"${isSel(img.id)?' checked':''}>
+      <img class="thumb" src="${img.url}">
       <div style="min-width:0">
         <div class="rname" title="${esc(img.name)}">${esc(img.name)}</div>
-        <div class="rsub">${img.pw}×${img.ph} px · sharp up to ${cm(sw)}×${cm(sh)} cm</div>
         <div class="qual ${loc?q:''}">${loc ? `${QTEXT[q]} · prints ${planned}` : '🅿️ Parked — not printed'}</div>
-        <div class="rctl">
+        <button class="chev" data-act="toggle">${openRows.has(img.id)?'▾ Hide settings':'▸ Settings'}</button>
+        <div class="rctl" style="flex-direction:column;align-items:flex-start">
+          <div class="rsub">${img.pw}×${img.ph} px${isCropped(img)?' (cropped)':''} · sharp up to ${cm(sw)}×${cm(sh)} cm</div>
           <select data-act="view">${vOpt}</select>
           <select data-act="isize">${sOpt}</select>
           <select data-act="move">${shOpt}</select>
@@ -547,11 +606,19 @@ function renderList(){
 }
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-function select(id, scroll){
-  selected = id;
-  document.querySelectorAll('.item.sel,.row.sel,.parked.sel').forEach(e => e.classList.remove('sel'));
-  document.querySelectorAll(`[data-id="${id}"]`).forEach(e => { if (['item','row','parked'].some(c => e.classList.contains(c))) e.classList.add('sel'); });
-  updateBands(id);
+// additive = Ctrl/Shift/⌘-click or a list checkbox: toggle this one in the selection
+function select(id, scroll, additive){
+  if (id == null){ selSet.clear(); selected = null; }
+  else if (additive){
+    if (selSet.has(id)){ selSet.delete(id); selected = selected===id ? ([...selSet].pop() ?? null) : selected; }
+    else { selSet.add(id); selected = id; }
+  } else { selSet = new Set([id]); selected = id; }
+  document.querySelectorAll('.item.sel,.row.sel,.parked.sel,.witem.sel').forEach(e => e.classList.remove('sel'));
+  document.querySelectorAll('.row .pick').forEach(c => c.checked = selSet.has(+c.closest('.row').dataset.id));
+  for (const sid of selSet) document.querySelectorAll(`[data-id="${sid}"]`).forEach(e => { if (['item','row','parked','witem'].some(c => e.classList.contains(c))) e.classList.add('sel'); });
+  $('#selCount').textContent = selSet.size > 1 ? `${selSet.size} selected` : '';
+  updateBands(selected);
+  if (typeof renderCollage === 'function') renderCollage();
   renderToolbar();
   if (scroll){ const el = document.querySelector(`.${scroll}[data-id="${id}"]`); if (el) el.scrollIntoView({block:'nearest', inline:'nearest', behavior:'smooth'}); }
 }
@@ -585,6 +652,8 @@ function syncSettings(){
   $('#gapIn').value = S.gap; $('#marginIn').value = S.margin; $('#rotIn').checked = S.rotate; $('#capSel').value = S.cap;
   document.querySelectorAll('.view').forEach(l => { const on = l.dataset.v===S.view; l.classList.toggle('on',on); l.querySelector('input').checked=on; });
   $('#biasIn').value = S.bias ?? 2; lastBias = S.bias ?? 2; syncBiasNote();
+  if (!S.wall) S.wall = {w:1200, h:800, gap:40, crop:true, map:true};
+  collageInputs();
 }
 
 /* ---------- list events ---------- */
@@ -598,18 +667,26 @@ function setItemSize(loc, iw, ih, rot){
   const [W,H] = sheetWH(sh), [bw,bh] = boxWH(it);
   it.x = clamp(cx-bw/2, 0, W-bw); it.y = clamp(cy-bh/2, 0, H-bh);
 }
-function imageAction(id, act, v){
+function imageAction(id, act, v, quiet){
   const img = imgById(id); if (!img) return;
   let loc = locate(id);
   if (['grow','shrink','width','turn'].includes(act) && !loc) return;
   if (act==='width' && !(v*10 > 5)) { render(); return; }
+  if (quiet){ applyImageAction(id, img, loc, act, v); return; }
   snapshot();
+  if (applyImageAction(id, img, loc, act, v) === 'removed'){ selSet.delete(id); if (selected===id) selected = [...selSet].pop() ?? null; render(); return; }
+  if (!selSet.has(id)) selSet = new Set([id]);
+  selected = id; render();
+  loc = locate(id);
+  if (loc && clashes(loc.sh).has(id) && act!=='move') toast('Now overlapping another image — drag it into a gap, or press “Tidy” on that sheet.');
+}
+function applyImageAction(id, img, loc, act, v){
   const resizeToSetting = () => { if (loc){ const [w,h] = wantedDims(img); setItemSize(loc, w, h); } };
   if (act==='view'){ img.view = v; if (img.size!=='custom') resizeToSetting(); }
   else if (act==='isize'){ img.size = v; if (v!=='custom') img.customW = null; resizeToSetting(); }
   else if (act==='grow' || act==='shrink' || act==='width'){
     const nw = act==='width' ? v*10 : loc.it.iw * (act==='grow' ? 1.1 : 1/1.1);
-    setItemSize(loc, nw, nw * img.ph / img.pw);
+    setItemSize(loc, nw, nw * eph(img) / epw(img));
     img.size = 'custom'; img.customW = loc.it.iw;
     if (act==='width' && Math.abs(loc.it.iw - nw) > 0.5) toast(`Capped at ${cm(loc.it.iw)} cm wide — that's as big as fits on this sheet`);
   }
@@ -619,25 +696,38 @@ function imageAction(id, act, v){
   else if (act==='remove'){
     images = images.filter(i => i.id!==id);
     sheets.forEach(sh => sh.items = sh.items.filter(it => it.id!==id)); sheets = sheets.filter(s => s.items.length);
-    if (selected===id) selected = null; render(); return;
+    return 'removed';
   }
-  selected = id; render();
-  loc = locate(id);
-  if (loc && clashes(loc.sh).has(id) && act!=='move') toast('Now overlapping another image — drag it into a gap, or press “Tidy” on that sheet.');
+  else if (act==='uncrop'){ img.crop = null; if (loc){ const r = img.ph/img.pw; setItemSize(loc, loc.it.iw, loc.it.iw*r); img.customW = loc.it.iw; } }
+}
+function imageActionMany(ids, act, v){
+  if (ids.length <= 1){ if (ids.length) imageAction(ids[0], act, v); return; }
+  snapshot();
+  const keep = history.length;
+  for (const id of ids){ imageAction(id, act, v, true); }
+  history.length = keep;                        // one Undo step for the whole batch
+  if (act==='remove'){ selSet.clear(); selected = null; }
+  else { selSet = new Set(ids.filter(id => imgById(id))); }
+  render();
 }
 $('#list').addEventListener('change', e => {
   const row = e.target.closest('.row'); if (!row) return;
-  const act = e.target.dataset.act;
+  const act = e.target.dataset.act; if (act==='check') return;
   imageAction(+row.dataset.id, act, act==='own' ? e.target.checked : e.target.value);
 });
 $('#list').addEventListener('click', e => {
   const row = e.target.closest('.row'); if (!row) return;
   const id = +row.dataset.id, act = e.target.dataset.act;
   if (act==='remove'){ imageAction(id, 'remove'); return; }
+  if (act==='check'){ select(id, null, true); return; }
+  if (act==='toggle'){ openRows.has(id) ? openRows.delete(id) : openRows.add(id); renderList(); return; }
   if (e.target.closest('select,input,label')) return;
-  select(id, 'item');
+  select(id, 'item', e.ctrlKey || e.metaKey || e.shiftKey);
 });
-$('#clearBtn').onclick = () => { if (!images.length) return; snapshot(); images=[]; sheets=[]; selected=null; render(); toast('Removed all — Undo brings them back'); };
+$('#listTitle').onclick = () => $('#imgSec').classList.toggle('closed');
+$('#selAll').onclick = () => { selSet = new Set(images.map(i => i.id)); selected = images.length ? images[images.length-1].id : null; render(); };
+$('#selNone').onclick = () => { select(null); };
+$('#clearBtn').onclick = () => { if (!images.length) return; snapshot(); images=[]; sheets=[]; selected=null; selSet.clear(); render(); toast('Removed all — Undo brings them back'); };
 
 /* ---------- stage events: sheet header + drag/resize ---------- */
 const stage = $('#stage');
@@ -661,7 +751,10 @@ stage.addEventListener('pointerdown', e => {
   if (!el){ if (selected && !e.target.closest('button,select,input,label')) select(null); return; }
   $('#imgbar').classList.remove('show');
   e.preventDefault();
-  const id = +el.dataset.id; select(id, 'row'); hideTip();
+  const id = +el.dataset.id, add = e.ctrlKey || e.metaKey || e.shiftKey;
+  if (add){ select(id, 'row', true); return; }   // ctrl/shift-click only changes the selection
+  if (!selSet.has(id) || selSet.size === 1) select(id, 'row'); else { selected = id; renderToolbar(); }
+  hideTip();
   const k = ppm(), r = el.getBoundingClientRect();
   if (el.classList.contains('parked')){
     // dragging out of the parking area: ghost at the image's planned print size
@@ -688,7 +781,7 @@ function setGhost(d, x, y){
   if (!d.ghost){
     const g = document.createElement('div'); g.className = 'ghost';
     const img = imgById(d.id);
-    g.innerHTML = `<img src="${img.url}" class="${d.rot?'rot':''}" style="${d.rot?`width:${d.gh}px;height:${d.gw}px`:''}">`;
+    g.innerHTML = d.rot ? innerHTML(img, d.gh, d.gw, true) : innerHTML(img, d.gw, d.gh, false);
     Object.assign(g.style, {width:d.gw+'px', height:d.gh+'px'});
     document.body.appendChild(g); d.ghost = g; d.el.classList.add('ghosted');
   }
@@ -713,7 +806,7 @@ window.addEventListener('pointermove', e => {
     showTip(e, `${cm(it.iw)} × ${cm(it.ih)} cm · ${QTEXT[quality(imgById(it.id), it.iw)]}`);
     const [bw,bh] = boxWH(it);
     Object.assign(el.style, {width:bw*k+'px', height:bh*k+'px'});
-    if (it.rot){ const im = el.querySelector('img'); im.style.width = bh*k+'px'; im.style.height = bw*k+'px'; }
+    updateInner(el, imgById(it.id), it.iw*k, it.ih*k);
     updateBands(it.id); return;
   }
   const t = targetAt(e.clientX, e.clientY);
@@ -809,16 +902,280 @@ $('#undoBtn').onclick = undo;
 document.addEventListener('keydown', e => {
   if (e.key==='Escape' && selected && !e.target.closest('input,select')){ select(null); return; }
   if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && !e.target.closest('input,select')){ e.preventDefault(); undo(); }
-  if ((e.key==='Delete'||e.key==='Backspace') && selected && !e.target.closest('input,select')){
-    const btn = document.querySelector(`.row[data-id="${selected}"] [data-act="remove"]`); if (btn) btn.click();
+  if ((e.key==='Delete'||e.key==='Backspace') && selSet.size && !e.target.closest('input,select')){
+    imageActionMany([...selSet], 'remove');
   }
+});
+
+/* ---------- collage: layouts on a wall ----------
+   Every layout is built at a "size" u (mm) and then grown as large as possible while:
+   it fits the wall space, every poster stays sharp (current view + size slider), and every poster fits on a print sheet. */
+const aspect = img => img.pw / img.ph;
+function centerCrop(img, t){ // crop the full image to aspect t (w/h)
+  const a = aspect(img);
+  if (Math.abs(t-a)/a < 0.005) return null;
+  return t < a ? {x:(1-t/a)/2, y:0, w:t/a, h:1} : {x:0, y:(1-a/t)/2, w:1, h:a/t};
+}
+const median = arr => { const v=[...arr].sort((a,b)=>a-b); return v.length ? v[Math.floor((v.length-1)/2)] : 1; };
+const shapeOf = a => a > 1.08 ? 'landscape' : a < 0.93 ? 'portrait' : 'square';
+const shortName = n => { const b = n.replace(/\.[^.]+$/,''); return b.length > 14 ? b.slice(0,12)+'…' : b; };
+
+function L_grid(imgs, c, g, crop){
+  const n = imgs.length, r = Math.ceil(n/c), A = median(imgs.map(aspect));
+  return u => {
+    const cw = u, ch = u/A, out = [];
+    imgs.forEach((img,i) => {
+      const row = Math.floor(i/c), inRow = row===r-1 ? n-(r-1)*c : c, col = i%c;
+      const off = (c-inRow)*(cw+g)/2;                     // centre a short last row
+      let x = off + col*(cw+g), y = row*(ch+g), w = cw, h = ch, cr = null;
+      if (crop) cr = centerCrop(img, A);
+      else { const a = aspect(img); if (a > A){ h = cw/a; y += (ch-h)/2; } else { w = ch*a; x += (cw-w)/2; } }
+      out.push({id:img.id, x, y, w, h, crop:cr});
+    });
+    return out;
+  };
+}
+function L_hero(imgs, g){
+  const hero = imgs.reduce((a,b) => epx(b) > epx(a) ? b : a), rest = imgs.filter(i => i!==hero);
+  const left = rest.filter((_,i) => i%2===1), right = rest.filter((_,i) => i%2===0);
+  return u => {                                            // u = hero height
+    const out = [], hw = u*aspect(hero);
+    const col = (list, x0, side) => {
+      if (!list.length) return 0;
+      const cw = (u - (list.length-1)*g) / list.reduce((s,i) => s + 1/aspect(i), 0);
+      if (!(cw > 1)) return null;
+      let y = 0; for (const i of list){ const h = cw/aspect(i); out.push({id:i.id, x: side<0 ? x0-cw : x0, y, w:cw, h, crop:null}); y += h+g; }
+      return cw;
+    };
+    const lw = col(left, 0, -1); if (lw === null) return null;
+    out.push({id:hero.id, x: lw ? g : 0, y:0, w:hw, h:u, crop:null});
+    const rw = col(right, hw + (lw ? g : 0) + g, 1); if (rw === null) return null;
+    out.forEach(p => p.x += lw);                          // shift so the left column starts at 0
+    return out;
+  };
+}
+const epx = img => img.pw * img.ph;
+function L_masonry(imgs, c, g, crop){
+  return u => {                                            // u = column width
+    const cols = Array.from({length:c}, () => ({h:0, list:[]}));
+    for (const img of imgs){ const col = cols.reduce((a,b) => b.h < a.h ? b : a); const h = u/aspect(img); col.list.push({img, h}); col.h += h + g; }
+    if (cols.some(c => !c.list.length)) return null;
+    if (crop){                                            // even out the bottom edge by trimming tall images a little (≤18% each)
+      const target = Math.min(...cols.map(c => c.h));
+      for (const col of cols){
+        const extra = col.h - target; if (extra < 0.5) continue;
+        const tot = col.list.reduce((s,e) => s+e.h, 0);
+        if (col.list.every(e => extra*e.h/tot <= e.h*0.18)){ col.list.forEach(e => { e.cut = extra*e.h/tot; }); col.h = target; }
+      }
+    }
+    const out = [];
+    cols.forEach((col, ci) => { let y = 0; for (const e of col.list){
+      const h = e.h - (e.cut||0);
+      out.push({id:e.img.id, x: ci*(u+g), y, w:u, h, crop: e.cut ? {x:0, y:(1-h/e.h)/2, w:1, h:h/e.h} : null}); y += h+g; } });
+    return out;
+  };
+}
+function L_rows(imgs, R, g){
+  // split in order into R rows with balanced total aspect; each row is scaled to the same width (nothing cropped)
+  const as = imgs.map(aspect), tot = as.reduce((a,b)=>a+b,0), rows = [[]]; let acc = 0;
+  imgs.forEach((img,i) => { if (acc >= tot*rows.length/R && rows.length < R && rows[rows.length-1].length) rows.push([]); rows[rows.length-1].push(img); acc += as[i]; });
+  if (rows.length !== R) return null;
+  return u => {                                            // u = total width
+    const out = []; let y = 0;
+    for (const row of rows){
+      const h = (u - (row.length-1)*g) / row.reduce((s,i) => s+aspect(i), 0); if (!(h > 1)) return null;
+      let x = 0; for (const img of row){ const w = h*aspect(img); out.push({id:img.id, x, y, w, h, crop:null}); x += w+g; }
+      y += h+g;
+    }
+    return out;
+  };
+}
+function bbox(P){ let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity; for (const p of P){ x0=Math.min(x0,p.x); y0=Math.min(y0,p.y); x1=Math.max(x1,p.x+p.w); y1=Math.max(y1,p.y+p.h); } return {x0,y0,w:x1-x0,h:y1-y0}; }
+function maxSharpW(img, cr){ const dpi = VIEWS[viewOf(img)].dpi * biasF(); return img.pw*(cr?cr.w:1)/dpi*MM_PER_IN; }
+function fitsSheet(w,h){ const [aw,ah] = areaFor(S.sheet, S.orient), e=.01; return (w<=aw+e && h<=ah+e) || (S.rotate && h<=aw+e && w<=ah+e); }
+function grow(build){
+  const W = S.wall.w, H = S.wall.h; let lo = 0, hi = Math.max(W,H)*2, best = null, limit = 'wall';
+  for (let k=0; k<44; k++){
+    const u = (lo+hi)/2, P = build(u);
+    if (!P){ hi = u; continue; }
+    const b = bbox(P); let fail = null;
+    if (b.w > W+.01 || b.h > H+.01) fail = 'wall';
+    else for (const p of P){
+      const img = imgById(p.id);
+      if (p.w > maxSharpW(img, p.crop)*1.0001){ fail = 'res:'+p.id; break; }
+      if (!fitsSheet(p.w, p.h)){ fail = 'sheet'; break; }
+    }
+    if (fail){ hi = u; limit = fail; } else { lo = u; best = P; }
+  }
+  if (!best) return null;
+  const b = bbox(best), dx = (W-b.w)/2 - b.x0, dy = (H-b.h)/2 - b.y0;
+  return {P: best.map(p => ({...p, x:p.x+dx, y:p.y+dy})), w:b.w, h:b.h, limit};
+}
+function collageSource(){ const ids = selSet.size >= 2 ? [...selSet] : images.map(i => i.id); return ids.map(imgById).filter(Boolean); }
+function suggestLayouts(){
+  const imgs = collageSource(), n = imgs.length, g = S.wall.gap, crop = S.wall.crop;
+  if (n < 2) return [];
+  const shapes = imgs.map(i => shapeOf(aspect(i))), same = shapes.every(x => x===shapes[0]);
+  const shapeTxt = same ? `All ${n} are ${shapes[0]}` : 'Mixed shapes';
+  const cands = [];
+  // grids: column counts that make tidy rows and suit the wall's shape
+  const wallA = S.wall.w / S.wall.h, A = median(imgs.map(aspect));
+  const cs = [];
+  for (let c=1; c<=Math.min(n,6); c++){ const r = Math.ceil(n/c); if (r*c - n <= Math.max(1, Math.floor(c/2)) && !(r>1 && c===1)) cs.push(c); }
+  cs.sort((a,b) => Math.abs(Math.log((a*A)/(Math.ceil(n/a))/wallA)) - Math.abs(Math.log((b*A)/(Math.ceil(n/b))/wallA)));
+  for (const c of cs.slice(0,2)){
+    const r = Math.ceil(n/c);
+    const name = r===1 ? (n===2 ? 'Diptych' : n===3 ? 'Triptych' : 'Even row') : `Grid ${c} × ${r}`;
+    cands.push({key:'grid'+c, name, build:L_grid(imgs, c, g, crop),
+      why: crop ? (same ? `${shapeTxt} — clean, even grid` : `${shapeTxt} — trimmed to one shape so edges line up`) : `${shapeTxt} — even cells, images kept whole`});
+  }
+  if (n >= 3){
+    const hero = imgs.reduce((a,b) => epx(b) > epx(a) ? b : a);
+    cands.push({key:'hero', name:'Hero + sides', build:L_hero(imgs, g), why:`“${shortName(hero.name)}” has the most detail, so it goes big in the middle`});
+  }
+  for (const c of [2,3,4].filter(c => c < n)) cands.push({key:'mas'+c, name:`Masonry · ${c} columns`, build:L_masonry(imgs, c, g, crop),
+      why: crop ? 'Pinterest-style columns; bottoms evened with light trims' : 'Pinterest-style columns, nothing cropped'});
+  for (const R of [1,2,3].filter(R => R <= Math.ceil(n/2) || R===1)) if (!(R===1 && n>6)) cands.push({key:'rows'+R, name: R===1 ? 'In a line' : `Gallery · ${R} rows`, build:L_rows(imgs, R, g),
+      why: R===1 ? 'One row, same height, nothing cropped' : 'Rows of equal height, flush edges, nothing cropped'});
+  const res = [];
+  for (const c of cands){
+    if (!c.build) continue;
+    const f = grow(c.build); if (!f) continue;
+    const used = f.P.reduce((s,p) => s+p.w*p.h, 0) / (S.wall.w*S.wall.h);
+    const lost = f.P.reduce((s,p) => s + (p.crop ? 1 - p.crop.w*p.crop.h : 0), 0) / n;
+    const lim = f.limit.startsWith('res:') ? `Size limited by “${shortName(imgById(+f.limit.slice(4)).name)}” (resolution)` : f.limit==='sheet' ? 'Size limited by the print sheet' : 'Fills the wall space';
+    res.push({...c, ...f, score: used*(1 - lost*1.6), note:`${cm(f.w)} × ${cm(f.h)} cm · ${lim}${lost>.01?` · ~${Math.round(lost*100)}% trimmed on average`:''}`});
+  }
+  res.sort((a,b) => b.score - a.score);
+  return res.slice(0,6);
+}
+function miniHTML(P, wPx){
+  const k = wPx / S.wall.w;
+  return `<div class="minip" style="height:${S.wall.h*k}px">${P.map(p => `<div style="${posterStyle(imgById(p.id), p.crop, p.x*k, p.y*k, p.w*k, p.h*k)}"></div>`).join('')}</div>`;
+}
+function posterStyle(img, cr, x, y, w, h){
+  const c = cr || FULL;
+  const bx = c.w < .999 ? c.x/(1-c.w)*100 : 0, by = c.h < .999 ? c.y/(1-c.h)*100 : 0;
+  return `left:${x}px;top:${y}px;width:${w}px;height:${h}px;background-image:url('${img.url}');background-size:${100/c.w}% ${100/c.h}%;background-position:${bx}% ${by}%`;
+}
+let lastSuggest = [];
+function renderCollage(){
+  const src = collageSource();
+  $('#colSrc').innerHTML = !images.length ? 'Add images first.' : selSet.size >= 2 ? `Using the <b>${selSet.size} selected</b> images.` : `Using <b>all ${images.length}</b> images — tick images below (or Ctrl-click) to use just some.`;
+  lastSuggest = suggestLayouts();
+  $('#colCards').innerHTML = src.length < 2 ? '' : lastSuggest.map((c,i) =>
+    `<button class="card${preview && preview.key===c.key ? ' on':''}" data-i="${i}">${miniHTML(c.P, 150)}<b>${c.name}</b><span>${c.why}</span><span>${c.note}</span></button>`).join('');
+}
+function openCollage(){ const sec = $('#colSec'); sec.scrollIntoView({behavior:'smooth', block:'start'}); sec.animate([{background:'#e3efed'},{background:'transparent'}], {duration:1200}); }
+$('#colCards').addEventListener('click', e => {
+  const c = e.target.closest('.card'); if (!c) return;
+  const sug = lastSuggest[+c.dataset.i]; if (!sug) return;
+  preview = {key:sug.key, name:sug.name, P:sug.P, w:sug.w, h:sug.h, note:sug.note, why:sug.why};
+  stageMode = 'wall'; render();
+});
+function collageInputs(){
+  $('#wallW').value = S.wall.w/10; $('#wallH').value = S.wall.h/10; $('#wallGap').value = S.wall.gap/10;
+  $('#cropIn').checked = S.wall.crop; $('#mapIn').checked = S.wall.map;
+}
+[['#wallW','w'],['#wallH','h'],['#wallGap','gap']].forEach(([sel,key]) => $(sel).onchange = e => {
+  const v = parseFloat(e.target.value); if (!(v >= 0)) { collageInputs(); return; }
+  S.wall = {...S.wall, [key]: v*10}; preview = null; render();
+});
+$('#cropIn').onchange = e => { S.wall = {...S.wall, crop:e.target.checked}; preview = null; render(); };
+$('#mapIn').onchange = e => { S.wall = {...S.wall, map:e.target.checked}; };
+
+function applyCollage(){
+  if (!preview) return;
+  snapshot();
+  const ids = new Set(preview.P.map(p => p.id));
+  images.forEach(img => { if (!ids.has(img.id)) img.wall = null; });   // the wall shows one collage at a time
+  const objs = [];
+  for (const p of preview.P){
+    const img = imgById(p.id);
+    img.crop = p.crop; img.size = 'custom'; img.customW = p.w; img.own = false; img.wall = {x:p.x, y:p.y};
+    detach(p.id); objs.push({id:p.id, w:p.w, h:p.h});
+  }
+  const before = sheets.filter(s => s.items.length).length;
+  sheets = sheets.filter(s => s.items.length).concat(packInto(objs, S.sheet, S.orient));
+  const added = sheets.length - before; expCache.clear();
+  const n = preview.P.length; preview = null; selSet = new Set(ids); selected = null; render();
+  toast(`Collage applied — ${n} posters printed on ${added} new sheet${added===1?'':'s'}${S.wall.map?'; a wall map page will be added to the PDF':''}`);
+}
+
+function renderWall(){
+  const st = $('#stage');
+  const W = S.wall.w, H = S.wall.h;
+  const k = Math.min((st.clientWidth - 90) / W, (window.innerHeight - 260) / H * 1.6, 1.4) * S.zoom;
+  let posters;
+  if (preview) posters = preview.P.map(p => ({img:imgById(p.id), x:p.x, y:p.y, w:p.w, h:p.h, crop:p.crop}));
+  else posters = images.filter(i => i.wall).map(img => { const l = locate(img.id); const [w,h] = l ? [l.it.iw, l.it.ih] : wantedDims(img); return {img, x:img.wall.x, y:img.wall.y, w, h, crop:img.crop, parked:!l}; });
+  const body = posters.length ? posters.map(p => {
+    const q = quality(p.img, p.w);
+    return `<div class="witem${!preview && isSel(p.img.id)?' sel':''}" data-id="${p.img.id}" style="${posterStyle(p.img, p.crop, p.x*k, p.y*k, p.w*k, p.h*k)}${p.parked?';opacity:.45':''}"><span class="q ${q}"></span></div>`; }).join('') : '';
+  const banner = preview
+    ? `<div class="pbanner"><div class="grow"><b>Preview: ${preview.name}</b> — ${preview.why}.<br><span class="hint">${preview.note}. Nothing has changed yet.</span></div>
+        <button class="btn" id="pvCancel">Cancel</button><button class="btn primary" id="pvApply">Apply collage</button></div>`
+    : posters.length ? '' : `<div class="pbanner"><div class="grow"><b>No collage on the wall yet.</b> Pick a layout in the <b>Collage</b> section on the left to preview it here.</div></div>`;
+  st.innerHTML = `<div class="summary">${modeTabs()}<span>Wall space <b>${cm(W)} × ${cm(H)} cm</b>${!preview && posters.length ? ` · ${posters.length} posters · drag to adjust` : ''}</span>
+      <span class="zoom">Zoom <input type="range" id="zoomIn" min="0.4" max="2.5" step="0.1" value="${S.zoom}"></span></div>
+    ${banner}
+    <div class="wallwrap" style="grid-template-columns:${RULER}px ${W*k}px;grid-template-rows:${RULER}px ${H*k}px">
+      <div class="rcorner">cm</div>
+      <div class="ruler h">${rulerSVG(W,k,true)}</div>
+      <div class="ruler v">${rulerSVG(H,k,false)}</div>
+      <div class="wall" id="wall" style="width:${W*k}px;height:${H*k}px"><div class="area"></div>${body}</div>
+    </div>
+    <p class="hint" style="margin-top:16px">The dashed box is the wall space you set. Posters are separate prints — they're packed onto the print sheets, and the PDF can include a wall map showing where each one goes.</p>`;
+  st.dataset.k = k;
+  $('#zoomIn').oninput = e => { S.zoom = +e.target.value; renderStage(); placeToolbar(); };
+  if (preview){ $('#pvCancel').onclick = () => { preview = null; render(); }; $('#pvApply').onclick = applyCollage; }
+}
+stage.addEventListener('click', e => {
+  const b = e.target.closest('#modeSeg button'); if (!b) return;
+  stageMode = b.dataset.mode; if (stageMode==='sheets') preview = null; render();
+});
+// drag posters around the wall (applied collages only)
+let wdrag = null;
+stage.addEventListener('pointerdown', e => {
+  const el = e.target.closest('.witem'); if (!el || preview) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  const id = +el.dataset.id, img = imgById(id);
+  select(id, 'row', e.ctrlKey||e.metaKey||e.shiftKey);
+  wdrag = {img, el, sx:e.clientX, sy:e.clientY, ox:img.wall.x, oy:img.wall.y, moved:false, snap:snapState()};
+  try { el.setPointerCapture(e.pointerId); } catch(_){}
+  imgbar.classList.remove('show');
+}, true);
+window.addEventListener('pointermove', e => {
+  if (!wdrag) return;
+  const k = +stage.dataset.k, dx = (e.clientX-wdrag.sx)/k, dy = (e.clientY-wdrag.sy)/k;
+  if (Math.abs(dx)+Math.abs(dy) > 0.5) wdrag.moved = true;
+  wdrag.img.wall = {x: wdrag.ox+dx, y: wdrag.oy+dy};
+  wdrag.el.style.left = wdrag.img.wall.x*k+'px'; wdrag.el.style.top = wdrag.img.wall.y*k+'px';
+  showTip(e, `${cm(wdrag.img.wall.x)} cm from left · ${cm(wdrag.img.wall.y)} cm from top`);
+});
+window.addEventListener('pointerup', () => {
+  if (!wdrag) return;
+  const d = wdrag; wdrag = null; hideTip();
+  if (d.moved){ history.push(d.snap); if (history.length>60) history.shift(); $('#undoBtn').disabled=false; }
+  renderToolbar();
 });
 
 /* ---------- floating image toolbar (Canva-style) ---------- */
 const imgbar = $('#imgbar');
 function renderToolbar(){
+  if (selSet.size > 1 && !drag && !preview){
+    const n = selSet.size;
+    imgbar.innerHTML = `
+      <div class="grp"><b>${n} selected</b></div>
+      <div class="grp"><select data-tb="isize" title="Set the size of all selected"><option value="">Size…</option>${[['auto','Biggest sharp'],['A6','Fit A6'],['A5','Fit A5'],['A4','Fit A4'],['A3','Fit A3'],['full','Fill the sheet']].map(([v,l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>
+      <div class="grp"><select data-tb="view"><option value="">Seen…</option>${['default','close','wall','far'].map(v => `<option value="${v}">${v==='default'?'Same as all':VIEWS[v].label}</option>`).join('')}</select></div>
+      <div class="grp"><select data-tb="move"><option value="">Move all to…</option>${sheets.map((_,i) => `<option value="${i}">Sheet ${i+1}</option>`).join('')}<option value="park">Park them</option></select></div>
+      <div class="grp"><button data-tb="collage" title="See collage layouts for these">▦ Collage these</button></div>
+      <div class="grp"><button data-tb="remove" class="del" title="Remove all selected">🗑</button></div>`;
+    imgbar.classList.add('show'); placeToolbar(); return;
+  }
   const loc = selected ? locate(selected) : null;
-  if (!loc || drag){ imgbar.classList.remove('show'); return; }
+  if (!loc || drag || preview){ imgbar.classList.remove('show'); return; }
   const img = imgById(selected), it = loc.it, q = quality(img, it.iw);
   const si = sheets.indexOf(loc.sh);
   const sizes = [['auto','Biggest sharp'],['A6','Fit A6'],['A5','Fit A5'],['A4','Fit A4'],['A3','Fit A3'],['full','Fill the sheet']];
@@ -831,14 +1188,15 @@ function renderToolbar(){
     <div class="grp"><select data-tb="view" title="How it will be seen">${['default','close','wall','far'].map(v => `<option value="${v}"${img.view===v?' selected':''}>${v==='default'?'Seen: same as all':'Seen: '+VIEWS[v].label}</option>`).join('')}</select></div>
     <div class="grp"><button data-tb="turn" title="Turn 90° on the sheet">⟳ Turn</button>
       <select data-tb="move" title="Move to another sheet">${sheets.map((_,i) => `<option value="${i}"${i===si?' selected':''}>Sheet ${i+1}</option>`).join('')}<option value="new">→ New sheet</option><option value="park">→ Park it</option></select>
-      <button data-tb="own" class="${img.own?'on':''}" title="Give it a sheet of its own">Own sheet</button></div>
+      <button data-tb="own" class="${img.own?'on':''}" title="Give it a sheet of its own">Own sheet</button>
+      ${isCropped(img)?'<button data-tb="uncrop" title="Show the whole image again">Uncrop</button>':''}</div>
     <div class="grp"><button data-tb="remove" class="del" title="Remove this image">🗑</button></div>`;
   imgbar.classList.add('show');
   placeToolbar();
 }
 function placeToolbar(){
   if (!imgbar.classList.contains('show')) return;
-  const el = document.querySelector(`.item[data-id="${selected}"]`); if (!el){ imgbar.classList.remove('show'); return; }
+  const el = document.querySelector(`.item[data-id="${selected}"], .witem[data-id="${selected}"]`); if (!el){ imgbar.classList.remove('show'); return; }
   const r = el.getBoundingClientRect(), sr = stage.getBoundingClientRect();
   if (r.bottom < sr.top + 10 || r.top > sr.bottom - 10){ imgbar.style.visibility = 'hidden'; return; }
   imgbar.style.visibility = '';
@@ -855,10 +1213,13 @@ imgbar.addEventListener('pointerdown', e => e.stopPropagation());
 imgbar.addEventListener('click', e => {
   const b = e.target.closest('button[data-tb]'); if (!b || !selected) return;
   const a = b.dataset.tb;
+  if (a==='collage'){ openCollage(); return; }
+  if (selSet.size > 1){ imageActionMany([...selSet], a); return; }
   imageAction(selected, a, a==='own' ? !imgById(selected).own : undefined);
 });
 imgbar.addEventListener('change', e => {
   const a = e.target.dataset.tb; if (!a || !selected) return;
+  if (selSet.size > 1){ if (e.target.value!=='') imageActionMany([...selSet], a, e.target.value); return; }
   imageAction(selected, a, a==='width' ? parseFloat(e.target.value) : e.target.value);
 });
 imgbar.addEventListener('keydown', e => { if (e.key==='Enter' && e.target.dataset.tb==='width') e.target.blur(); });
@@ -869,16 +1230,18 @@ function dataURLToBlob(d){ const [h,b]=d.split(','); const mime=h.match(/:(.*?);
 const expCache = new Map();
 // returns a JPEG blob at full source resolution, rotated 90° clockwise if needed
 async function exportJpeg(img, rot){
-  const key = img.id + (rot?'r':'');
+  const cr = cropOf(img), key = img.id + (rot?'r':'') + JSON.stringify(cr);
   if (expCache.has(key)) return expCache.get(key);
   let out;
-  if (!rot && img.blob.type==='image/jpeg') out = img.blob;
+  if (!rot && !isCropped(img) && img.blob.type==='image/jpeg') out = img.blob;
   else {
     const el = await loadDims(img.url);
-    const c = document.createElement('canvas'); c.width = rot?img.ph:img.pw; c.height = rot?img.pw:img.ph;
+    const sx = Math.round(cr.x*img.pw), sy = Math.round(cr.y*img.ph);
+    const sw = Math.max(1, Math.round(cr.w*img.pw)), sh = Math.max(1, Math.round(cr.h*img.ph));
+    const c = document.createElement('canvas'); c.width = rot?sh:sw; c.height = rot?sw:sh;
     const x = c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
     if (rot){ x.translate(c.width,0); x.rotate(Math.PI/2); }
-    x.drawImage(el,0,0,img.pw,img.ph);
+    x.drawImage(el, sx, sy, sw, sh, 0, 0, sw, sh);
     out = await new Promise(r => c.toBlob(r,'image/jpeg',0.95));
   }
   expCache.set(key,out); return out;
@@ -910,14 +1273,44 @@ async function buildPdf(){
   for (const sh of sheets.filter(s => s.items.length)){
     const [W,H] = sheetWH(sh); const page = doc.addPage([pt(W), pt(H)]);
     for (const it of sh.items){
-      const img = imgById(it.id), key = it.id+(it.rot?'r':'');
+      const img = imgById(it.id), key = it.id+(it.rot?'r':'')+JSON.stringify(cropOf(img));
       if (!embedded.has(key)) embedded.set(key, await doc.embedJpg(new Uint8Array(await (await exportJpeg(img,it.rot)).arrayBuffer())));
       const [bw,bh] = boxWH(it);
       page.drawImage(embedded.get(key), {x:pt(it.x), y:pt(H-it.y-bh), width:pt(bw), height:pt(bh)});
     }
   }
+  await addWallMap(doc, embedded);
   doc.setTitle('Poster sheets');
   return doc.save();
+}
+async function addWallMap(doc, embedded){
+  const posters = images.filter(i => i.wall && locate(i.id)).map(img => { const it = locate(img.id).it; return {img, x:img.wall.x, y:img.wall.y, w:it.iw, h:it.ih}; });
+  if (!S.wall.map || !posters.length) return;
+  const {StandardFonts, rgb} = window.PDFLib;
+  const font = await doc.embedFont(StandardFonts.Helvetica), bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const pt = mm => mm*72/MM_PER_IN, PW = 297, PH = 210, page = doc.addPage([pt(PW), pt(PH)]);
+  const b = bbox(posters), m = 12, listW = 92;
+  const k = Math.min((PW - 2*m - listW - 8) / b.w, (PH - 2*m - 14) / b.h);
+  const ox = m, oy = m + 12;
+  const Y = y => pt(PH - y);                                                // pdf origin is bottom-left
+  page.drawText('Wall map', {x:pt(m), y:Y(m+5), size:14, font:bold});
+  page.drawText(`Collage ${cm(b.w)} × ${cm(b.h)} cm. Distances are measured from the top-left corner of the collage.`, {x:pt(m+28), y:Y(m+5), size:8.5, font, color:rgb(.35,.35,.35)});
+  page.drawRectangle({x:pt(ox), y:Y(oy + b.h*k), width:pt(b.w*k), height:pt(b.h*k), borderColor:rgb(.75,.75,.75), borderWidth:.6, borderDashArray:[3,3]});
+  posters.sort((a,b2) => a.y - b2.y || a.x - b2.x);
+  for (let i=0; i<posters.length; i++){
+    const p = posters[i], x = ox + (p.x-b.x0)*k, y = oy + (p.y-b.y0)*k, w = p.w*k, h = p.h*k;
+    const key = p.img.id + JSON.stringify(cropOf(p.img));
+    if (!embedded.has(key)) embedded.set(key, await doc.embedJpg(new Uint8Array(await (await exportJpeg(p.img,false)).arrayBuffer())));
+    page.drawImage(embedded.get(key), {x:pt(x), y:Y(y+h), width:pt(w), height:pt(h)});
+    page.drawCircle({x:pt(x+4), y:Y(y+4), size:pt(3.2), color:rgb(1,1,1), borderColor:rgb(0,0,0), borderWidth:.5});
+    const t = String(i+1); page.drawText(t, {x:pt(x+4) - bold.widthOfTextAtSize(t,7)/2, y:Y(y+4) - 2.4, size:7, font:bold});
+    const ly = m + 16 + i*7.2;
+    if (ly < PH - m){
+      page.drawText(`${i+1}.`, {x:pt(PW-m-listW), y:Y(ly), size:8, font:bold});
+      page.drawText(`${cm(p.w)} × ${cm(p.h)} cm`, {x:pt(PW-m-listW+6), y:Y(ly), size:8, font});
+      page.drawText(`${cm(p.x-b.x0)} cm from left, ${cm(p.y-b.y0)} cm from top`, {x:pt(PW-m-listW+6), y:Y(ly+3.4), size:7, font, color:rgb(.4,.4,.4)});
+    }
+  }
 }
 async function buildPptx(){
   const groups = {};
@@ -981,7 +1374,7 @@ $('#projIn').onchange = async e => {
     snapshot();
     S = {...S, ...p.S}; uid = Math.max(p.uid||1, uid);
     images = p.images.map(({data,...rest}) => { const blob = dataURLToBlob(data); return {...rest, blob, url:URL.createObjectURL(blob)}; });
-    sheets = p.sheets; selected=null; expCache.clear();
+    sheets = p.sheets; selected=null; selSet.clear(); expCache.clear();
     syncSettings(); render(); toast('Project opened');
   } catch(err){ toast('Couldn’t open: '+(err.message||err)); }
   busy(false);
