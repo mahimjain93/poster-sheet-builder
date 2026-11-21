@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Poster Sheet Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@4.0.1/dist/pptxgen.bundle.js" defer></script>
+<style>
+:root{
+  --bg:#eceae6; --panel:#fbfaf8; --ink:#1d1c1a; --muted:#6f6b64; --line:#dedad3;
+  --accent:#1f5f5b; --accent-soft:#e3efed; --ok:#2f8a4c; --soft:#c98a12; --bad:#c23b31;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;display:flex;flex-direction:column}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+/* top bar */
+.top{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{font-weight:700;font-size:15px;margin-right:8px;letter-spacing:-.01em}
+.brand small{display:block;font-weight:500;color:var(--muted);font-size:11.5px;letter-spacing:0}
+.spacer{flex:1}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:#bdb7ad}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.sep{width:1px;height:24px;background:var(--line)}
+/* layout */
+.main{flex:1;display:flex;min-height:0}
+.side{width:380px;flex:none;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto}
+.stage{flex:1;overflow:auto;padding:20px 24px 60px;position:relative}
+.sec{padding:14px 16px;border-bottom:1px solid var(--line)}
+.sec h3{margin:0 0 10px;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.field{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0}
+.field label{color:var(--ink)}
+.field select,.field input[type=number]{border:1px solid var(--line);border-radius:7px;padding:5px 8px;background:#fff;min-width:0}
+.field input[type=number]{width:70px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:5px 10px}
+.seg button.on{background:var(--accent);color:#fff}
+.views{display:grid;gap:6px}
+.view{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:#fff;cursor:pointer}
+.view input{margin-top:3px;accent-color:var(--accent)}
+.view b{font-weight:600}
+.view span{display:block;color:var(--muted);font-size:12.5px}
+.view.on{border-color:var(--accent);background:var(--accent-soft)}
+.check{display:flex;gap:8px;align-items:flex-start;margin-top:10px}
+.check input{accent-color:var(--accent);margin-top:3px}
+.hint{color:var(--muted);font-size:12px;line-height:1.45}
+/* image list */
+.listhead{display:flex;align-items:center;justify-content:space-between}
+.linkbtn{border:0;background:none;color:var(--muted);padding:0;font-size:12px;text-decoration:underline}
+.row{display:grid;grid-template-columns:52px 1fr 22px;gap:10px;padding:10px 0;border-top:1px solid var(--line);align-items:start}
+.row:first-of-type{border-top:0}
+.row.sel{background:var(--accent-soft);margin:0 -16px;padding:10px 16px}
+.thumb{width:52px;height:52px;object-fit:cover;border-radius:6px;background:#ddd;cursor:pointer}
+.rname{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:250px}
+.rsub{color:var(--muted);font-size:12px;margin-top:1px}
+.qual{font-size:12.5px;margin-top:3px;font-weight:500}
+.qual.ok{color:var(--ok)} .qual.soft{color:var(--soft)} .qual.bad{color:var(--bad)}
+.rctl{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.rctl select{border:1px solid var(--line);border-radius:6px;padding:3px 5px;background:#fff;font-size:12px;max-width:150px}
+.rctl label{font-size:12px;display:flex;gap:4px;align-items:center;color:var(--muted)}
+.rctl input{accent-color:var(--accent)}
+.xbtn{border:0;background:none;color:var(--muted);font-size:18px;line-height:1;padding:0}
+.xbtn:hover{color:var(--bad)}
+/* stage */
+.summary{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:16px;color:var(--muted)}
+.summary b{color:var(--ink)}
+.pill{padding:3px 9px;border-radius:99px;font-size:12.5px;font-weight:500}
+.pill.soft{background:#f7ead0;color:#8a5c05}.pill.bad{background:#f6dcd9;color:#93271f}.pill.clash{background:#f6dcd9;color:#93271f}
+.zoom{display:flex;align-items:center;gap:6px;margin-left:auto}
+.sheets{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.sheet-wrap{display:flex;flex-direction:column;gap:8px}
+.shead{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12.5px}
+.shead b{font-size:13px}
+.shead select{border:1px solid var(--line);border-radius:6px;padding:2px 4px;background:#fff;font-size:12px}
+.mini{border:1px solid var(--line);background:#fff;border-radius:6px;padding:2px 7px;font-size:12px}
+.sheet{position:relative;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.08);overflow:hidden;touch-action:none}
+.guide{position:absolute;border:1px dashed #e4e0d9;pointer-events:none}
+.item{position:absolute;cursor:grab;outline:1px solid rgba(0,0,0,.06);overflow:hidden;touch-action:none}
+.item img{position:absolute;left:0;top:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.item img.rot{left:50%;top:50%;transform:translate(-50%,-50%) rotate(90deg)}
+.item:hover{outline:2px solid rgba(31,95,91,.55)}
+.item.sel{outline:2px solid var(--accent);z-index:3}
+.item.clash{outline:2px solid var(--bad);z-index:2}
+.item .q{position:absolute;top:4px;left:4px;width:10px;height:10px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.q.ok{background:var(--ok)}.q.soft{background:var(--soft)}.q.bad{background:var(--bad)}
+.item .handle{position:absolute;right:0;bottom:0;width:14px;height:14px;background:var(--accent);border-top-left-radius:4px;cursor:nwse-resize;opacity:0}
+.item:hover .handle,.item.sel .handle{opacity:1}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:#fff;font-size:12px;padding:5px 8px;border-radius:6px;z-index:50;display:none;max-width:260px}
+/* empty */
+.empty{border:2px dashed #c9c3b9;border-radius:14px;padding:44px 28px;text-align:center;max-width:640px;margin:30px auto;background:rgba(255,255,255,.5)}
+.empty h2{margin:0 0 6px;font-size:20px}
+.empty p{color:var(--muted);margin:6px 0;line-height:1.5}
+.empty .btn{margin-top:14px}
+.tips{text-align:left;margin-top:22px;background:#fff;border-radius:10px;padding:14px 16px;border:1px solid var(--line)}
+.tips b{display:block;margin-bottom:4px}
+.tips li{margin:5px 0;color:var(--muted);line-height:1.45}
+code{background:#f1eee9;border-radius:4px;padding:1px 5px;font-size:12.5px}
+.drop-on .stage{outline:3px dashed var(--accent);outline-offset:-10px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:9px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+.busy{position:fixed;inset:0;background:rgba(251,250,248,.75);display:none;align-items:center;justify-content:center;z-index:70;font-weight:600;font-size:15px}
+.busy.show{display:flex}
+.foot{padding:14px 16px}
+/* size slider */
+.slider input{width:100%;accent-color:var(--accent)}
+.slider .ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:-2px}
+.biasnote{margin:8px 0 10px;font-size:12.5px;line-height:1.45;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+/* rulers */
+.sgrid{display:grid;gap:0}
+.rcorner{font-size:9.5px;color:var(--muted);display:flex;align-items:flex-end;justify-content:flex-end;padding:0 3px 2px 0}
+.ruler{position:relative;background:#f6f4f0;overflow:hidden}
+.ruler svg{display:block;stroke:#9c968c;stroke-width:1;font-size:9.5px;font-family:Inter,sans-serif}
+.ruler svg text{stroke:none;fill:#6f6b64}
+.ruler.h{border-bottom:1px solid #cfc9bf}
+.ruler.v{border-right:1px solid #cfc9bf}
+.band{position:absolute;background:rgba(31,95,91,.18);border:0 solid var(--accent);pointer-events:none;display:none}
+.ruler.h .band{top:0;bottom:0;border-left-width:1px;border-right-width:1px}
+.ruler.v .band{left:0;right:0;border-top-width:1px;border-bottom-width:1px}
+/* parking tray + cross-sheet drag */
+.tray{background:#f6f4f0;border:2px dashed #cfc9bf;border-radius:10px;padding:10px 12px;margin-bottom:22px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-height:64px}
+.tray .tlabel{font-size:12.5px;color:var(--muted);max-width:220px;line-height:1.4}
+.tray .tlabel b{color:var(--ink)}
+.parked{height:64px;border-radius:4px;cursor:grab;box-shadow:0 1px 4px rgba(0,0,0,.15);touch-action:none;user-select:none;-webkit-user-drag:none}
+.parked.sel{outline:2px solid var(--accent);outline-offset:2px}
+.droptarget{outline:3px solid var(--accent)!important;outline-offset:2px}
+.item.ghosted{opacity:.25}
+.ghost{position:fixed;z-index:80;pointer-events:none;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.28);outline:2px solid var(--accent);opacity:.92}
+.ghost img{position:absolute;left:0;top:0;width:100%;height:100%}
+.ghost img.rot{left:50%;top:50%;transform:translate(-50%,-50%) rotate(90deg)}
+.newsheet{border:2px dashed #b9b2a6;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:13px;padding:14px;width:170px;min-height:170px;margin-top:48px;line-height:1.4}
+@media (max-width:860px){.main{flex-direction:column}.side{width:auto;max-height:45vh;border-right:0;border-bottom:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand">Poster Sheet Builder<small>Drop pins → sharp sizes → packed sheets → print</small></div>
+  <button class="btn primary" id="addBtn">+ Add images</button>
+  <button class="btn" id="arrangeBtn" title="Re-pack every sheet from scratch">Auto-arrange</button>
+  <button class="btn" id="undoBtn" disabled>Undo</button>
+  <div class="spacer"></div>
+  <button class="btn" id="saveProj" title="Save everything (images + layout) to reopen here later">Save project</button>
+  <button class="btn" id="openProj">Open project</button>
+  <div class="sep"></div>
+  <button class="btn" id="pptxBtn" title="Editable file — PowerPoint, Google Slides, or import into Canva">Download editable (.pptx)</button>
+  <button class="btn primary" id="pdfBtn">Download print PDF</button>
+  <input type="file" id="fileIn" accept="image/*" multiple hidden>
+  <input type="file" id="projIn" accept=".json,application/json" hidden>
+</div>
+
+<div class="main">
+  <aside class="side">
+    <div class="sec">
+      <h3>Sheets</h3>
+      <div class="field"><label for="sheetSel">Paper size</label>
+        <select id="sheetSel"></select></div>
+      <div class="field"><label>Orientation</label>
+        <span class="seg" id="orientSeg"><button data-v="portrait">Portrait</button><button data-v="landscape">Landscape</button></span></div>
+      <div class="field"><label for="gapIn">White gap between images</label>
+        <span><input type="number" id="gapIn" min="0" max="40" step="1"> mm</span></div>
+      <div class="field"><label for="marginIn">White border at paper edge</label>
+        <span><input type="number" id="marginIn" min="0" max="40" step="1"> mm</span></div>
+      <label class="check"><input type="checkbox" id="rotIn"><span>Turn images sideways when it saves paper<br><span class="hint">You'll cut them out anyway — this fits more per sheet.</span></span></label>
+    </div>
+    <div class="sec">
+      <h3>How will these be seen?</h3>
+      <div class="views" id="views"></div>
+      <p class="hint" style="margin:8px 0 0">Sets how big each image can go before it looks pixelated. You can change it per image below.</p>
+    </div>
+    <div class="sec">
+      <h3>Size</h3>
+      <div class="slider">
+        <input type="range" id="biasIn" min="0" max="4" step="1">
+        <div class="ends"><span>Sharpest</span><span>Biggest</span></div>
+        <div class="biasnote" id="biasNote"></div>
+      </div>
+      <div class="field"><label for="capSel">Largest any image can be</label>
+        <select id="capSel">
+          <option value="none">As big as stays sharp</option>
+          <option value="A3">A3</option><option value="A4">A4</option>
+          <option value="A5">A5</option><option value="A6">A6</option>
+        </select></div>
+      <p class="hint" style="margin:4px 0 0">Changing sizes re-packs the sheets. Do any dragging/fine-tuning last (Undo is there if needed).</p>
+    </div>
+    <div class="sec">
+      <div class="listhead"><h3 id="listTitle" style="margin:0">Images</h3><button class="linkbtn" id="clearBtn">Remove all</button></div>
+      <div id="list" style="margin-top:8px"></div>
+    </div>
+    <div class="foot hint">
+      <b style="color:var(--ink)">Printing:</b> ask the shop to print at <b style="color:var(--ink)">actual size / 100%</b> — not “fit to page”.<br>
+      <b style="color:var(--ink)">Editing in Canva:</b> Canva → Create a design → Import file → pick the .pptx (or the PDF). Every image stays a separate, movable item.
+    </div>
+  </aside>
+  <section class="stage" id="stage"></section>
+</div>
+<div class="tip" id="tip"></div>
+<div class="toast" id="toast"></div>
+<div class="busy" id="busy">Working…</div>
+
+<script>
+/* ---------- constants ---------- */
+const SHEETS = {
+  A3:{n:'A3',w:297,h:420}, A4:{n:'A4',w:210,h:297}, A2:{n:'A2',w:420,h:594}, A5:{n:'A5',w:148,h:210},
+  '12x18':{n:'12 × 18 in',w:304.8,h:457.2}, '13x19':{n:'13 × 19 in (Super A3)',w:330.2,h:482.6}
+};
+const TARGETS = {A6:[105,148], A5:[148,210], A4:[210,297], A3:[297,420]};
+// dpi = resolution that looks sharp from that distance (calibrated from real prints: 180 on a wall was sharp with room to spare)
+const VIEWS = {
+  close:{dpi:200, label:'Up close', hint:'Desk, shelf, small frames you look at from near'},
+  wall: {dpi:110, label:'On a wall (1–2 m away)', hint:'Normal room wall, seen while walking past or sitting'},
+  far:  {dpi:75,  label:'Across the room', hint:'Big posters seen from 3 m or more'}
+};
+// Size slider: multiplies the resolution the planner aims for. >1 = safety margin (smaller), <1 = trade a little sharpness for size
+const BIAS = [
+  {f:1.6,  label:'Sharpest', note:'Extra-safe — about the size of your first batch'},
+  {f:1.3,  label:'Sharper',  note:'A bit bigger, still crisp'},
+  {f:1.0,  label:'Balanced', note:'As big as stays sharp from this distance'},
+  {f:0.85, label:'Bigger',   note:'Slightly soft up close — fine from the viewing distance'},
+  {f:0.72, label:'Biggest',  note:'Noticeably softer up close; prints as large as reasonable'}
+];
+const MM_PER_IN = 25.4;
+
+/* ---------- state ---------- */
+let S = {sheet:'A3', orient:'portrait', margin:6, gap:5, view:'wall', cap:'none', rotate:true, zoom:1, bias:2};
+let images = [];   // {id,name,pw,ph,blob,url,view,size,customW,own}
+let sheets = [];   // {id,size,orient,items:[{id,iw,ih,rot,x,y}]}
+let uid = 1, selected = null, history = [];
+let DL = null;
+
+const $ = s => document.querySelector(s);
+const imgById = id => images.find(i => i.id === id);
+const cm = mm => (mm/10).toFixed(1);
+
+/* ---------- geometry ---------- */
+function sheetWH(sh){ const d = SHEETS[sh.size]; return sh.orient === 'landscape' ? [d.h, d.w] : [d.w, d.h]; }
+function boxWH(it){ return it.rot ? [it.ih, it.iw] : [it.iw, it.ih]; }
+function viewOf(img){ return img.view === 'default' ? S.view : img.view; }
+function sharpDims(img, f){ const dpi = VIEWS[viewOf(img)].dpi * (f ?? 1); return [img.pw/dpi*MM_PER_IN, img.ph/dpi*MM_PER_IN]; }
+function biasF(){ return BIAS[S.bias ?? 2].f; }
+function fitOriented(w,h,bw,bh){ const L=Math.max(bw,bh), Sh=Math.min(bw,bh); const [tw,th] = w>=h ? [L,Sh] : [Sh,L]; const s=Math.min(tw/w, th/h); return [w*s, h*s]; }
+function wantedDims(img){
+  let [w,h] = sharpDims(img, biasF());
+  if (img.size === 'custom' && img.customW) return [img.customW, img.customW * img.ph / img.pw];
+  if (TARGETS[img.size]) return fitOriented(w,h,...TARGETS[img.size]);
+  if (img.size === 'full') return [w*1000, h*1000];
+  if (S.cap !== 'none'){ const [cw,ch] = fitOriented(w,h,...TARGETS[S.cap]); if (cw < w){ w=cw; h=ch; } }
+  return [w,h];
+}
+function clampToArea(w,h,aw,ah,rot){
+  const e=0.01;
+  if (w<=aw+e && h<=ah+e) return [w,h];
+  if (rot && h<=aw+e && w<=ah+e) return [w,h];
+  let s = Math.min(aw/w, ah/h);
+  if (rot) s = Math.max(s, Math.min(aw/h, ah/w));
+  return [w*s, h*s];
+}
+function quality(img, iw){
+  const eff = img.pw / (iw / MM_PER_IN), req = VIEWS[viewOf(img)].dpi, r = eff/req;
+  return r >= 0.95 ? 'ok' : r >= 0.7 ? 'soft' : 'bad';
+}
+const QTEXT = {ok:'✅ Sharp', soft:'⚠️ Slightly soft', bad:'❌ Will look pixelated'};
+
+/* ---------- MaxRects bin ---------- */
+const E = 1e-6;
+const contains = (b,a) => a.x>=b.x-E && a.y>=b.y-E && a.x+a.w<=b.x+b.w+E && a.y+a.h<=b.y+b.h+E;
+class Bin {
+  constructor(W,H){ this.free=[{x:0,y:0,w:W,h:H}]; }
+  find(w,h,rot){
+    let best=null;
+    const opts = rot && Math.abs(w-h)>0.01 ? [[w,h,false],[h,w,true]] : [[w,h,false]];
+    for (const f of this.free) for (const [ww,hh,r] of opts){
+      if (ww<=f.w+E && hh<=f.h+E){
+        const ss = Math.min(f.w-ww, f.h-hh) + (r?0.5:0), ls = Math.max(f.w-ww, f.h-hh);
+        if (!best || ss<best.ss-E || (Math.abs(ss-best.ss)<E && ls<best.ls)) best={x:f.x,y:f.y,w:ww,h:hh,rot:r,ss,ls};
+      }
+    }
+    return best;
+  }
+  place(r){
+    const out=[];
+    for (const f of this.free){
+      if (r.x>=f.x+f.w-E || r.x+r.w<=f.x+E || r.y>=f.y+f.h-E || r.y+r.h<=f.y+E){ out.push(f); continue; }
+      if (r.x>f.x+E) out.push({x:f.x,y:f.y,w:r.x-f.x,h:f.h});
+      if (r.x+r.w<f.x+f.w-E) out.push({x:r.x+r.w,y:f.y,w:f.x+f.w-r.x-r.w,h:f.h});
+      if (r.y>f.y+E) out.push({x:f.x,y:f.y,w:f.w,h:r.y-f.y});
+      if (r.y+r.h<f.y+f.h-E) out.push({x:f.x,y:r.y+r.h,w:f.w,h:f.y+f.h-r.y-r.h});
+    }
+    this.free = out.filter((a,i) => a.w>0.01 && a.h>0.01 && !out.some((b,j) => j!==i && contains(b,a) && (!contains(a,b) || j<i)));
+  }
+}
+
+/* ---------- packing ---------- */
+function newSheet(size, orient){ return {id:uid++, size, orient, items:[]}; }
+function centerSheet(sh){
+  if (!sh.items.length) return;
+  const [W,H] = sheetWH(sh);
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+  for (const it of sh.items){ const [w,h]=boxWH(it); x0=Math.min(x0,it.x); y0=Math.min(y0,it.y); x1=Math.max(x1,it.x+w); y1=Math.max(y1,it.y+h); }
+  const dx=(W-(x1-x0))/2-x0, dy=(H-(y1-y0))/2-y0;
+  for (const it of sh.items){ it.x+=dx; it.y+=dy; }
+}
+// objs: [{id,w,h}] already clamped to the printable area of this sheet size
+function packInto(objs, size, orient){
+  const [W,H] = sheetWH({size,orient}), m=S.margin, g=S.gap, aw=W-2*m, ah=H-2*m;
+  const out=[], bins=[];
+  const sorted = [...objs].sort((a,b) => b.w*b.h - a.w*a.h);
+  for (const o of sorted){
+    let best=null;
+    bins.forEach((b,bi) => { const p=b.find(o.w+g, o.h+g, S.rotate); if (p && (!best || p.ss<best.p.ss)) best={bi,p}; });
+    if (!best){
+      const b = new Bin(aw+g, ah+g); bins.push(b); out.push(newSheet(size,orient));
+      const p = b.find(o.w+g, o.h+g, S.rotate);
+      if (!p) continue;
+      best = {bi:bins.length-1, p};
+    }
+    bins[best.bi].place(best.p);
+    out[best.bi].items.push({id:o.id, iw:o.w, ih:o.h, rot:best.p.rot, x:m+best.p.x, y:m+best.p.y});
+  }
+  out.forEach(centerSheet);
+  return out.filter(s => s.items.length);
+}
+function areaFor(size, orient){ const [W,H]=sheetWH({size,orient}); return [W-2*S.margin, H-2*S.margin]; }
+function autoArrange(){
+  const [aw,ah] = areaFor(S.sheet, S.orient);
+  const own=[], rest=[];
+  for (const img of images){
+    let [w,h] = wantedDims(img);
+    [w,h] = clampToArea(w,h,aw,ah,S.rotate);
+    (img.own ? own : rest).push({id:img.id, w, h});
+  }
+  const packed = packInto(rest, S.sheet, S.orient);
+  const ownSheets = own.map(o => {
+    const sh = newSheet(S.sheet, S.orient);
+    const up = o.w<=aw+0.01 && o.h<=ah+0.01;
+    sh.items.push({id:o.id, iw:o.w, ih:o.h, rot:!up, x:0, y:0});
+    centerSheet(sh); return sh;
+  });
+  sheets = [...packed, ...ownSheets];
+}
+function tidySheet(sh){
+  const [aw,ah] = areaFor(sh.size, sh.orient);
+  const objs = sh.items.map(it => { const [w,h]=clampToArea(it.iw,it.ih,aw,ah,S.rotate); return {id:it.id,w,h}; });
+  const res = packInto(objs, sh.size, sh.orient);
+  const i = sheets.indexOf(sh);
+  if (!res.length){ sh.items=[]; return; }
+  sh.items = res[0].items;
+  sheets.splice(i+1, 0, ...res.slice(1));
+  if (res.length>1) toast(`Didn't all fit — ${res.length-1} new sheet${res.length>2?'s':''} added after Sheet ${i+1}`);
+}
+function locate(id){ for (const sh of sheets){ const it = sh.items.find(x => x.id===id); if (it) return {sh,it}; } return null; }
+function detach(id){ for (const sh of sheets){ const i = sh.items.findIndex(x => x.id===id); if (i>=0) return {sh, it:sh.items.splice(i,1)[0]}; } return null; }
+function baseDims(id, old){ return old ? [old.iw, old.ih] : wantedDims(imgById(id)); }
+// fit an item's size into a sheet; keeps its turn if possible
+function fitItem(sh, iw, ih, rot){
+  const [aw,ah] = areaFor(sh.size, sh.orient), e=0.01;
+  const [bw,bh] = rot ? [ih,iw] : [iw,ih];
+  if (bw<=aw+e && bh<=ah+e) return {iw, ih, rot};
+  if (S.rotate && bh<=aw+e && bw<=ah+e) return {iw, ih, rot:!rot};
+  const [w,h] = clampToArea(iw, ih, aw, ah, S.rotate);
+  return {iw:w, ih:h, rot: !(w<=aw+e && h<=ah+e)};
+}
+// drop an image onto a sheet at a point (mm, top-left of the box); lands exactly there
+function dropOnSheet(id, sh, xMm, yMm, old){
+  const [iw0,ih0] = baseDims(id, old);
+  const f = fitItem(sh, iw0, ih0, old ? old.rot : false);
+  const [W,H] = sheetWH(sh), [bw,bh] = f.rot ? [f.ih,f.iw] : [f.iw,f.ih];
+  const it = {id, iw:f.iw, ih:f.ih, rot:f.rot, x:Math.min(Math.max(xMm,0),W-bw), y:Math.min(Math.max(yMm,0),H-bh)};
+  sh.items.push(it);
+  if (clashes(sh).has(id)) toast('Overlapping another image — drag it into a gap, or press “Tidy” on that sheet.');
+  return it;
+}
+function moveToSheet(id, target){
+  const loc = detach(id);
+  if (target === 'park') return;
+  let sh;
+  if (target === 'new'){ sh = newSheet(loc ? loc.sh.size : S.sheet, loc ? loc.sh.orient : S.orient); sheets.push(sh); }
+  else sh = sheets[target];
+  const [W,H]=sheetWH(sh), m=S.margin, g=S.gap, aw=W-2*m, ah=H-2*m;
+  const [w,h] = clampToArea(...baseDims(id, loc && loc.it), aw, ah, S.rotate);
+  const bin = new Bin(aw+g, ah+g);
+  for (const it of sh.items){ const [bw,bh]=boxWH(it); bin.place({x:it.x-m, y:it.y-m, w:bw+g, h:bh+g}); }
+  const p = bin.find(w+g, h+g, S.rotate);
+  const it = {id, iw:w, ih:h, rot:false, x:m, y:m};
+  if (p){ it.rot=p.rot; it.x=m+p.x; it.y=m+p.y; }
+  else toast("No free space there — it's overlapping. Use “Tidy” on that sheet, or shrink it.");
+  sh.items.push(it);
+  if (target==='new') centerSheet(sh);
+}
+function clashes(sh){
+  const [W,H]=sheetWH(sh), set=new Set(), t=0.4;
+  const b = sh.items.map(it => { const [w,h]=boxWH(it); return {id:it.id,x:it.x,y:it.y,w,h}; });
+  for (let i=0;i<b.length;i++){
+    const a=b[i];
+    if (a.x<-t || a.y<-t || a.x+a.w>W+t || a.y+a.h>H+t) set.add(a.id);
+    for (let j=i+1;j<b.length;j++){
+      const c=b[j];
+      if (a.x < c.x+c.w-t && a.x+a.w > c.x+t && a.y < c.y+c.h-t && a.y+a.h > c.y+t){ set.add(a.id); set.add(c.id); }
+    }
+  }
+  return set;
+}
+
+/* ---------- history ---------- */
+function snapshot(){
+  history.push({S:{...S}, images:images.map(i=>({...i})), sheets:JSON.parse(JSON.stringify(sheets)), selected});
+  if (history.length>60) history.shift();
+  $('#undoBtn').disabled = false;
+}
+function undo(){
+  const h = history.pop(); if (!h) return;
+  S = h.S; images = h.images; sheets = h.sheets; selected = h.selected;
+  $('#undoBtn').disabled = !history.length;
+  syncSettings(); render();
+}
+
+/* ---------- rendering ---------- */
+function ppm(){ return S.zoom; } // px per mm
+function render(){ renderStage(); renderList(); }
+
+function renderStage(){
+  const st = $('#stage');
+  if (!images.length){
+    st.innerHTML = `<div class="empty">
+      <h2>Drop your downloaded pins here</h2>
+      <p>Or use <b>+ Add images</b>. Any mix of sizes and shapes is fine — the tool works out how big each can print without pixelating, then packs them onto as many sheets as needed.</p>
+      <button class="btn primary" onclick="document.getElementById('fileIn').click()">+ Add images</button>
+      <div class="tips"><b>Get the biggest version of each pin</b><ul>
+        <li>Open the pin, right-click the image → <i>Open image in new tab</i>.</li>
+        <li>In that tab's address, change <code>/736x/</code> (or <code>/564x/</code>) to <code>/originals/</code> and press Enter. If it loads, save that — it's usually much larger.</li>
+        <li>A bulk “Pinterest board downloader” browser extension can save a whole board at once — check it saves originals, not thumbnails.</li>
+      </ul></div></div>`;
+    return;
+  }
+  const k = ppm();
+  let bad=0, soft=0, clashN=0;
+  const html = sheets.map((sh,si) => {
+    const [W,H]=sheetWH(sh), cl=clashes(sh); clashN += cl.size;
+    const items = sh.items.map(it => {
+      const img = imgById(it.id); const [bw,bh]=boxWH(it); const q=quality(img,it.iw);
+      if (q==='bad') bad++; else if (q==='soft') soft++;
+      const imgStyle = it.rot ? `width:${bh*k}px;height:${bw*k}px` : '';
+      return `<div class="item${cl.has(it.id)?' clash':''}${selected===it.id?' sel':''}" data-sheet="${sh.id}" data-id="${it.id}" style="left:${it.x*k}px;top:${it.y*k}px;width:${bw*k}px;height:${bh*k}px"><img src="${img.url}" draggable="false" class="${it.rot?'rot':''}" style="${imgStyle}"><span class="q ${q}"></span><span class="handle"></span></div>`;
+    }).join('');
+    const sizeOpts = Object.entries(SHEETS).map(([key,d]) => `<option value="${key}"${key===sh.size?' selected':''}>${d.n}</option>`).join('');
+    return `<div class="sheet-wrap">
+      <div class="shead"><b>Sheet ${si+1}</b><span style="color:var(--muted)">· ${sh.items.length} image${sh.items.length===1?'':'s'}</span>
+        <select data-act="size" data-sheet="${sh.id}">${sizeOpts}</select>
+        <button class="mini" data-act="orient" data-sheet="${sh.id}">${sh.orient==='portrait'?'Portrait':'Landscape'} ⟲</button>
+        <button class="mini" data-act="tidy" data-sheet="${sh.id}" title="Re-pack just this sheet">Tidy</button>
+        ${sh.items.length?'':`<button class="mini" data-act="del" data-sheet="${sh.id}">Delete</button>`}
+      </div>
+      <div class="sgrid" style="grid-template-columns:${RULER}px ${W*k}px;grid-template-rows:${RULER}px ${H*k}px">
+        <div class="rcorner">cm</div>
+        <div class="ruler h" data-sheet="${sh.id}">${rulerSVG(W,k,true)}<div class="band"></div></div>
+        <div class="ruler v" data-sheet="${sh.id}">${rulerSVG(H,k,false)}<div class="band"></div></div>
+        <div class="sheet" data-sheet="${sh.id}" style="width:${W*k}px;height:${H*k}px">
+          <div class="guide" style="left:${S.margin*k}px;top:${S.margin*k}px;right:${S.margin*k}px;bottom:${S.margin*k}px"></div>${items}
+        </div>
+      </div></div>`;
+  }).join('');
+  const parked = images.filter(i => !locate(i.id));
+  const filled = sheets.filter(s => s.items.length).length;
+  const trayHTML = parked.map(img => `<img class="parked${selected===img.id?' sel':''}" data-id="${img.id}" src="${img.url}" draggable="false" title="${esc(img.name)}">`).join('');
+  st.innerHTML = `<div class="summary"><span><b>${images.length}</b> image${images.length===1?'':'s'} on <b>${filled}</b> sheet${filled===1?'':'s'}</span>
+    ${sheets.length>filled?`<span class="pill soft">${sheets.length-filled} empty sheet${sheets.length-filled>1?'s':''} — delete or fill</span>`:''}
+    ${parked.length?`<span class="pill soft">${parked.length} parked (won't print)</span>`:''}
+    ${soft?`<span class="pill soft">${soft} slightly soft</span>`:''}${bad?`<span class="pill bad">${bad} will pixelate</span>`:''}
+    ${clashN?`<span class="pill clash">${clashN} overlapping — drag apart or “Tidy”</span>`:''}
+    <span class="zoom">Zoom <input type="range" id="zoomIn" min="0.4" max="2.5" step="0.1" value="${S.zoom}"></span></div>
+    <div class="tray" id="tray"><div class="tlabel"><b>Parking area</b><br>${parked.length?'Drag these onto any sheet. Parked images aren’t printed.':'Drop images here to set them aside while you rearrange.'}</div>${trayHTML}</div>
+    <div class="sheets">${html}<div class="newsheet" id="newsheet">Drop an image here<br>to start a new sheet</div></div>
+    <p class="hint" style="margin-top:22px">Drag images to move them — onto another sheet, the parking area, or “new sheet” · drag the corner square to resize · dot = sharpness (green sharp, amber slightly soft, red pixelated) · dashed line = paper-edge border (not printed) · rulers are in cm; the shaded band shows the selected image.</p>`;
+  $('#zoomIn').oninput = e => { S.zoom = +e.target.value; renderStage(); };
+  if (selected) updateBands(selected);
+}
+
+const RULER = 20; // ruler thickness, px
+function rulerSVG(lenMm, k, horiz){
+  const cmPx = 10*k, every = cmPx >= 22 ? 1 : cmPx >= 11 ? 5 : 10;
+  let s = '';
+  const tick = (p, L) => horiz ? `<line x1="${p+.5}" y1="${RULER}" x2="${p+.5}" y2="${RULER-L}"/>` : `<line y1="${p+.5}" x1="${RULER}" y2="${p+.5}" x2="${RULER-L}"/>`;
+  if (k >= 2.2) for (let i=1; i<lenMm; i++) if (i%10) s += tick(i*k, i%5 ? 3 : 5);
+  for (let c=0; c*10 <= lenMm+0.01; c++){
+    const p = c*10*k; s += tick(p, c%5===0 ? 11 : 7);
+    if (c>0 && c%every===0) s += horiz ? `<text x="${p+2}" y="9">${c}</text>` : `<text x="2" y="${p+10}">${c}</text>`;
+  }
+  return horiz ? `<svg width="${lenMm*k}" height="${RULER}">${s}</svg>` : `<svg width="${RULER}" height="${lenMm*k}">${s}</svg>`;
+}
+// shade the selected image's extent on its sheet's rulers
+function updateBands(id){
+  document.querySelectorAll('.ruler .band').forEach(b => b.style.display='none');
+  const loc = locate(id); if (!loc) return;
+  const k = ppm(), [bw,bh] = boxWH(loc.it);
+  const h = document.querySelector(`.ruler.h[data-sheet="${loc.sh.id}"] .band`), v = document.querySelector(`.ruler.v[data-sheet="${loc.sh.id}"] .band`);
+  if (h) Object.assign(h.style, {display:'block', left:loc.it.x*k+'px', width:bw*k+'px'});
+  if (v) Object.assign(v.style, {display:'block', top:loc.it.y*k+'px', height:bh*k+'px'});
+}
+
+function renderList(){
+  $('#listTitle').textContent = images.length ? `Images (${images.length})` : 'Images';
+  const sheetIdx = {}; sheets.forEach((sh,i) => sh.items.forEach(it => sheetIdx[it.id]=i));
+  $('#list').innerHTML = images.length ? images.map(img => {
+    const loc = locate(img.id); const [sw,sh] = sharpDims(img);
+    const q = loc ? quality(img, loc.it.iw) : 'ok';
+    const planned = loc ? `${cm(loc.it.iw)} × ${cm(loc.it.ih)} cm` : '—';
+    const vOpt = ['default','close','wall','far'].map(v => `<option value="${v}"${img.view===v?' selected':''}>${v==='default'?`Seen: same as above`:'Seen: '+VIEWS[v].label}</option>`).join('');
+    const sizes = [['auto','Size: biggest sharp'],['A6','Size: fit A6'],['A5','Size: fit A5'],['A4','Size: fit A4'],['A3','Size: fit A3'],['full','Size: fill a sheet']];
+    if (img.size==='custom') sizes.push(['custom','Size: custom (dragged)']);
+    const sOpt = sizes.map(([v,l]) => `<option value="${v}"${img.size===v?' selected':''}>${l}</option>`).join('');
+    const shOpt = sheets.map((_,i) => `<option value="${i}"${sheetIdx[img.id]===i?' selected':''}>On sheet ${i+1}</option>`).join('') + `<option value="new">→ New sheet</option><option value="park"${loc?'':' selected'}>Parked (not printed)</option>`;
+    return `<div class="row${selected===img.id?' sel':''}" data-id="${img.id}">
+      <img class="thumb" src="${img.url}" data-act="pick">
+      <div style="min-width:0">
+        <div class="rname" title="${esc(img.name)}">${esc(img.name)}</div>
+        <div class="rsub">${img.pw}×${img.ph} px · sharp up to ${cm(sw)}×${cm(sh)} cm</div>
+        <div class="qual ${loc?q:''}">${loc ? `${QTEXT[q]} · prints ${planned}` : '🅿️ Parked — not printed'}</div>
+        <div class="rctl">
+          <select data-act="view">${vOpt}</select>
+          <select data-act="isize">${sOpt}</select>
+          <select data-act="move">${shOpt}</select>
+          <label><input type="checkbox" data-act="own"${img.own?' checked':''}>Own sheet</label>
+        </div>
+      </div>
+      <button class="xbtn" data-act="remove" title="Remove">×</button>
+    </div>`;
+  }).join('') : '<p class="hint" style="margin:4px 0">No images yet.</p>';
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function select(id, scroll){
+  selected = id;
+  document.querySelectorAll('.item.sel,.row.sel,.parked.sel').forEach(e => e.classList.remove('sel'));
+  document.querySelectorAll(`[data-id="${id}"]`).forEach(e => { if (['item','row','parked'].some(c => e.classList.contains(c))) e.classList.add('sel'); });
+  updateBands(id);
+  if (scroll){ const el = document.querySelector(`.${scroll}[data-id="${id}"]`); if (el) el.scrollIntoView({block:'nearest', inline:'nearest', behavior:'smooth'}); }
+}
+
+/* ---------- settings panel ---------- */
+function buildSettings(){
+  $('#sheetSel').innerHTML = Object.entries(SHEETS).map(([k,d]) => `<option value="${k}">${d.n}</option>`).join('');
+  $('#views').innerHTML = Object.entries(VIEWS).map(([k,v]) => `<label class="view" data-v="${k}"><input type="radio" name="view" value="${k}"><div><b>${v.label}</b><span>${v.hint}</span></div></label>`).join('');
+  syncSettings();
+  const change = fn => e => { snapshot(); fn(e); autoArrange(); syncSettings(); render(); };
+  $('#sheetSel').onchange = change(e => S.sheet = e.target.value);
+  $('#orientSeg').onclick = e => { const b=e.target.closest('button'); if (!b) return; change(()=>S.orient=b.dataset.v)(); };
+  $('#gapIn').onchange = change(e => S.gap = Math.max(0, +e.target.value||0));
+  $('#marginIn').onchange = change(e => S.margin = Math.max(0, +e.target.value||0));
+  $('#rotIn').onchange = change(e => S.rotate = e.target.checked);
+  $('#capSel').onchange = change(e => S.cap = e.target.value);
+  $('#views').onchange = change(e => S.view = e.target.value);
+  $('#biasIn').oninput = () => { S.bias = +$('#biasIn').value; syncBiasNote(); };
+  // the slider's live preview changes S.bias while dragging, so record the value from before the drag for Undo
+  $('#biasIn').onchange = () => { const v = +$('#biasIn').value; S.bias = lastBias; snapshot(); S.bias = lastBias = v; autoArrange(); syncSettings(); render(); };
+}
+let lastBias = 2;
+function syncBiasNote(){
+  const b = BIAS[S.bias ?? 2], v = VIEWS[S.view];
+  const [w,h] = [736/(v.dpi*b.f)*MM_PER_IN, 1104/(v.dpi*b.f)*MM_PER_IN];
+  $('#biasNote').innerHTML = `<b>${b.label}</b> — ${b.note}.<br>A typical Pinterest pin (736 px wide) prints about <b>${cm(w)} × ${cm(h)} cm</b> ${v.label.toLowerCase().startsWith('on a wall')?'for a wall':v.label.toLowerCase()==='up close'?'for up close':'for across the room'}.`;
+}
+function syncSettings(){
+  $('#sheetSel').value = S.sheet;
+  document.querySelectorAll('#orientSeg button').forEach(b => b.classList.toggle('on', b.dataset.v===S.orient));
+  $('#gapIn').value = S.gap; $('#marginIn').value = S.margin; $('#rotIn').checked = S.rotate; $('#capSel').value = S.cap;
+  document.querySelectorAll('.view').forEach(l => { const on = l.dataset.v===S.view; l.classList.toggle('on',on); l.querySelector('input').checked=on; });
+  $('#biasIn').value = S.bias ?? 2; lastBias = S.bias ?? 2; syncBiasNote();
+}
+
+/* ---------- list events ---------- */
+$('#list').addEventListener('change', e => {
+  const row = e.target.closest('.row'); if (!row) return;
+  const id = +row.dataset.id, img = imgById(id), act = e.target.dataset.act;
+  snapshot();
+  if (act==='view'){ img.view = e.target.value; autoArrange(); }
+  else if (act==='isize'){ img.size = e.target.value; if (img.size!=='custom') img.customW=null; autoArrange(); }
+  else if (act==='own'){ img.own = e.target.checked; autoArrange(); }
+  else if (act==='move'){ const v=e.target.value; moveToSheet(id, v==='new'||v==='park'?v:+v); sheets = sheets.filter(s=>s.items.length); }
+  selected = id; render();
+});
+$('#list').addEventListener('click', e => {
+  const row = e.target.closest('.row'); if (!row) return;
+  const id = +row.dataset.id, act = e.target.dataset.act;
+  if (act==='remove'){
+    snapshot(); images = images.filter(i => i.id!==id);
+    sheets.forEach(sh => sh.items = sh.items.filter(it => it.id!==id)); sheets = sheets.filter(s => s.items.length);
+    if (selected===id) selected=null; render(); return;
+  }
+  if (e.target.closest('select,input,label')) return;
+  select(id, 'item');
+});
+$('#clearBtn').onclick = () => { if (!images.length) return; snapshot(); images=[]; sheets=[]; selected=null; render(); toast('Removed all — Undo brings them back'); };
+
+/* ---------- stage events: sheet header + drag/resize ---------- */
+const stage = $('#stage');
+stage.addEventListener('change', e => {
+  if (e.target.dataset.act==='size'){ const sh = sheets.find(s => s.id===+e.target.dataset.sheet); snapshot(); sh.size = e.target.value; tidySheet(sh); render(); }
+});
+stage.addEventListener('click', e => {
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const sh = sheets.find(s => s.id===+b.dataset.sheet); if (!sh) return;
+  snapshot();
+  if (b.dataset.act==='orient'){ sh.orient = sh.orient==='portrait'?'landscape':'portrait'; tidySheet(sh); }
+  else if (b.dataset.act==='tidy') tidySheet(sh);
+  else if (b.dataset.act==='del') sheets = sheets.filter(s => s!==sh);
+  render();
+});
+let drag = null;
+const snapState = () => ({S:{...S}, images:images.map(i=>({...i})), sheets:JSON.parse(JSON.stringify(sheets)), selected});
+stage.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  const el = e.target.closest('.item, .parked'); if (!el) return;
+  e.preventDefault();
+  const id = +el.dataset.id; select(id, 'row'); hideTip();
+  const k = ppm(), r = el.getBoundingClientRect();
+  if (el.classList.contains('parked')){
+    // dragging out of the parking area: ghost at the image's planned print size
+    const [iw,ih] = baseDims(id, null);
+    drag = {id, from:null, it:null, el, mode:'move', sx:e.clientX, sy:e.clientY, moved:false, snap:snapState(),
+            gw:iw*k, gh:ih*k, rot:false, gx:iw*k/2, gy:ih*k/2};
+  } else {
+    const sh = sheets.find(s => s.id===+el.dataset.sheet), it = sh.items.find(x => x.id===id), [bw,bh] = boxWH(it);
+    drag = {id, from:sh, it, el, mode: e.target.classList.contains('handle') ? 'resize' : 'move', sx:e.clientX, sy:e.clientY,
+            ox:it.x, oy:it.y, ow:it.iw, oh:it.ih, moved:false, snap:snapState(),
+            gw:bw*k, gh:bh*k, rot:it.rot, gx:e.clientX-r.left, gy:e.clientY-r.top};
+  }
+  el.style.pointerEvents = 'none'; // so we can see what's under the pointer
+  try { el.setPointerCapture(e.pointerId); } catch(_){}
+});
+function targetAt(x, y){
+  const u = document.elementFromPoint(x, y); if (!u) return null;
+  const sheetEl = u.closest('.sheet'); if (sheetEl) return {kind:'sheet', el:sheetEl, sh:sheets.find(s => s.id===+sheetEl.dataset.sheet)};
+  const t = u.closest('#tray'); if (t) return {kind:'tray', el:t};
+  const n = u.closest('#newsheet'); if (n) return {kind:'new', el:n};
+  return null;
+}
+function setGhost(d, x, y){
+  if (!d.ghost){
+    const g = document.createElement('div'); g.className = 'ghost';
+    const img = imgById(d.id);
+    g.innerHTML = `<img src="${img.url}" class="${d.rot?'rot':''}" style="${d.rot?`width:${d.gh}px;height:${d.gw}px`:''}">`;
+    Object.assign(g.style, {width:d.gw+'px', height:d.gh+'px'});
+    document.body.appendChild(g); d.ghost = g; d.el.classList.add('ghosted');
+  }
+  d.ghost.style.left = (x-d.gx)+'px'; d.ghost.style.top = (y-d.gy)+'px';
+}
+function clearGhost(d){ if (d.ghost){ d.ghost.remove(); d.ghost=null; } d.el.classList.remove('ghosted'); }
+function markTarget(t){
+  document.querySelectorAll('.droptarget').forEach(x => x.classList.remove('droptarget'));
+  if (t) t.el.classList.add('droptarget');
+}
+window.addEventListener('pointermove', e => {
+  if (!drag){ hoverTip(e); return; }
+  const d = drag, k = ppm(), dx=(e.clientX-d.sx)/k, dy=(e.clientY-d.sy)/k;
+  if (Math.abs(dx)+Math.abs(dy) > 0.5) d.moved = true;
+  if (!d.moved) return;
+  if (d.mode==='resize'){
+    const {it, from:sh, el} = d, [W,H] = sheetWH(sh);
+    const bw0 = it.rot ? d.oh : d.ow, bh0 = it.rot ? d.ow : d.oh;
+    let s = Math.max(15, bw0+dx) / bw0;
+    s = Math.min(s, (W-it.x)/bw0, (H-it.y)/bh0);
+    it.iw = d.ow*s; it.ih = d.oh*s;
+    showTip(e, `${cm(it.iw)} × ${cm(it.ih)} cm · ${QTEXT[quality(imgById(it.id), it.iw)]}`);
+    const [bw,bh] = boxWH(it);
+    Object.assign(el.style, {width:bw*k+'px', height:bh*k+'px'});
+    if (it.rot){ const im = el.querySelector('img'); im.style.width = bh*k+'px'; im.style.height = bw*k+'px'; }
+    updateBands(it.id); return;
+  }
+  const t = targetAt(e.clientX, e.clientY);
+  if (d.from && t && t.kind==='sheet' && t.sh===d.from){
+    // moving within its own sheet
+    clearGhost(d); markTarget(null);
+    const {it, el} = d, [W,H] = sheetWH(d.from), [bw,bh] = boxWH(it);
+    it.x = Math.min(Math.max(d.ox+dx, 0), W-bw); it.y = Math.min(Math.max(d.oy+dy, 0), H-bh);
+    Object.assign(el.style, {left:it.x*k+'px', top:it.y*k+'px'});
+    updateBands(it.id);
+    showTip(e, `${cm(it.x)} cm from left · ${cm(it.y)} cm from top`);
+  } else {
+    // leaving the sheet: show a floating copy and highlight where it would land
+    if (d.it){ d.it.x = d.ox; d.it.y = d.oy; Object.assign(d.el.style, {left:d.ox*k+'px', top:d.oy*k+'px'}); }
+    setGhost(d, e.clientX, e.clientY); markTarget(t); hideTip();
+    d.px = e.clientX; d.py = e.clientY;
+    if (!d.scrolling){ d.scrolling = true; requestAnimationFrame(() => autoScroll(d)); }
+  }
+});
+// while carrying an image, scroll the sheets area when the pointer nears its top/bottom edge
+function autoScroll(d){
+  if (drag !== d || !d.ghost){ d.scrolling = false; return; }
+  const r = stage.getBoundingClientRect(), edge = 70;
+  let v = 0;
+  if (d.py < r.top + edge) v = -Math.ceil((r.top + edge - d.py) / 4);
+  else if (d.py > r.bottom - edge) v = Math.ceil((d.py - (r.bottom - edge)) / 4);
+  if (v){ stage.scrollTop += v; markTarget(targetAt(d.px, d.py)); }
+  requestAnimationFrame(() => autoScroll(d));
+}
+window.addEventListener('pointerup', e => {
+  if (!drag) return;
+  const d = drag; drag = null; hideTip(); markTarget(null);
+  d.el.style.pointerEvents = '';
+  const ghosted = !!d.ghost; clearGhost(d);
+  if (!d.moved) return;
+  const commit = () => { history.push(d.snap); if (history.length>60) history.shift(); $('#undoBtn').disabled=false; };
+  if (d.mode==='resize'){ commit(); const img = imgById(d.it.id); img.size='custom'; img.customW=d.it.iw; render(); return; }
+  if (!ghosted){ commit(); render(); return; } // moved within its own sheet
+  const t = targetAt(e.clientX, e.clientY);
+  if (!t){ render(); return; } // dropped nowhere: snaps back
+  if (t.kind==='tray'){
+    if (!d.from){ render(); return; }
+    commit(); detach(d.id); toast('Parked — it won’t print until you drag it back onto a sheet'); render(); return;
+  }
+  commit();
+  const old = d.from ? detach(d.id).it : null;
+  if (t.kind==='new'){
+    const sh = newSheet(d.from ? d.from.size : S.sheet, d.from ? d.from.orient : S.orient); sheets.push(sh);
+    const f = fitItem(sh, ...baseDims(d.id, old), old ? old.rot : false);
+    sh.items.push({id:d.id, ...f, x:0, y:0}); centerSheet(sh);
+  } else {
+    const r = t.el.getBoundingClientRect(), k = ppm();
+    dropOnSheet(d.id, t.sh, (e.clientX-d.gx-r.left)/k, (e.clientY-d.gy-r.top)/k, old);
+  }
+  render();
+});
+function hoverTip(e){
+  const el = e.target.closest && e.target.closest('.item');
+  if (!el){ hideTip(); return; }
+  const loc = locate(+el.dataset.id); if (!loc) return;
+  const img = imgById(loc.it.id);
+  showTip(e, `${img.name}\n${cm(loc.it.iw)} × ${cm(loc.it.ih)} cm · ${QTEXT[quality(img, loc.it.iw)]}`);
+}
+function showTip(e, t){ const tp=$('#tip'); tp.textContent=t; tp.style.whiteSpace='pre-line'; tp.style.display='block'; tp.style.left=(e.clientX+14)+'px'; tp.style.top=(e.clientY+14)+'px'; }
+function hideTip(){ $('#tip').style.display='none'; }
+
+/* ---------- adding images ---------- */
+function loadDims(url){ return new Promise((res,rej) => { const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=url; }); }
+async function addFiles(files){
+  files = [...files].filter(f => f.type.startsWith('image/'));
+  if (!files.length) return;
+  busy(true, `Reading ${files.length} image${files.length>1?'s':''}…`);
+  const added=[]; let failed=0;
+  for (const f of files){
+    const url = URL.createObjectURL(f);
+    try { const im = await loadDims(url); added.push({id:uid++, name:f.name, pw:im.naturalWidth, ph:im.naturalHeight, blob:f, url, view:'default', size:'auto', customW:null, own:false}); }
+    catch { failed++; URL.revokeObjectURL(url); }
+  }
+  busy(false);
+  if (!added.length){ toast("Couldn't read those files as images."); return; }
+  snapshot(); images.push(...added); autoArrange(); render();
+  const small = added.filter(i => Math.max(i.pw,i.ph) <= 800).length;
+  toast(`Added ${added.length}${failed?` (${failed} couldn't be read)`:''}${small?` · ${small} look like small Pinterest previews — try the /originals/ trick for bigger prints`:''}`);
+}
+$('#addBtn').onclick = () => $('#fileIn').click();
+$('#fileIn').onchange = e => { addFiles(e.target.files); e.target.value=''; };
+['dragenter','dragover'].forEach(t => document.addEventListener(t, e => { if ([...(e.dataTransfer?.types||[])].includes('Files')){ e.preventDefault(); document.body.classList.add('drop-on'); } }));
+document.addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('drop-on'); });
+document.addEventListener('drop', e => { e.preventDefault(); document.body.classList.remove('drop-on'); if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files); });
+
+$('#arrangeBtn').onclick = () => { if (!images.length) return; snapshot(); autoArrange(); render(); toast('Re-packed all sheets'); };
+$('#undoBtn').onclick = undo;
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && !e.target.closest('input,select')){ e.preventDefault(); undo(); }
+  if ((e.key==='Delete'||e.key==='Backspace') && selected && !e.target.closest('input,select')){
+    const btn = document.querySelector(`.row[data-id="${selected}"] [data-act="remove"]`); if (btn) btn.click();
+  }
+});
+
+/* ---------- export helpers ---------- */
+function blobToDataURL(b){ return new Promise((res,rej) => { const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(b); }); }
+function dataURLToBlob(d){ const [h,b]=d.split(','); const mime=h.match(/:(.*?);/)[1]; const bin=atob(b); const u=new Uint8Array(bin.length); for (let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new Blob([u],{type:mime}); }
+const expCache = new Map();
+// returns a JPEG blob at full source resolution, rotated 90° clockwise if needed
+async function exportJpeg(img, rot){
+  const key = img.id + (rot?'r':'');
+  if (expCache.has(key)) return expCache.get(key);
+  let out;
+  if (!rot && img.blob.type==='image/jpeg') out = img.blob;
+  else {
+    const el = await loadDims(img.url);
+    const c = document.createElement('canvas'); c.width = rot?img.ph:img.pw; c.height = rot?img.pw:img.ph;
+    const x = c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
+    if (rot){ x.translate(c.width,0); x.rotate(Math.PI/2); }
+    x.drawImage(el,0,0,img.pw,img.ph);
+    out = await new Promise(r => c.toBlob(r,'image/jpeg',0.95));
+  }
+  expCache.set(key,out); return out;
+}
+async function saveFile(name, data){
+  if (!DL){ // standalone (GitHub / Vercel / opened from disk): normal browser download
+    const blob = data instanceof Blob ? data : new Blob([data]);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    return true;
+  }
+  try { await DL.save({filename:name, data}); return true; }
+  catch(e){ toast(e && e.code==='declined' ? 'Download cancelled' : 'Couldn’t save: ' + (e && (e.message||e.code) || e)); return false; }
+}
+function stamp(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function warnBeforeExport(){
+  const n = sheets.reduce((a,sh) => a + clashes(sh).size, 0), parked = images.filter(i => !locate(i.id)).length;
+  const msgs = [];
+  if (n) msgs.push(`${n} image${n>1?'s are':' is'} overlapping`);
+  if (parked) msgs.push(`${parked} parked image${parked>1?'s':''} won’t be included`);
+  if (msgs.length) toast('Heads up: ' + msgs.join(' · '));
+}
+
+async function buildPdf(){
+  const {PDFDocument} = window.PDFLib;
+  const doc = await PDFDocument.create();
+  const pt = mm => mm*72/MM_PER_IN; const embedded = new Map();
+  for (const sh of sheets.filter(s => s.items.length)){
+    const [W,H] = sheetWH(sh); const page = doc.addPage([pt(W), pt(H)]);
+    for (const it of sh.items){
+      const img = imgById(it.id), key = it.id+(it.rot?'r':'');
+      if (!embedded.has(key)) embedded.set(key, await doc.embedJpg(new Uint8Array(await (await exportJpeg(img,it.rot)).arrayBuffer())));
+      const [bw,bh] = boxWH(it);
+      page.drawImage(embedded.get(key), {x:pt(it.x), y:pt(H-it.y-bh), width:pt(bw), height:pt(bh)});
+    }
+  }
+  doc.setTitle('Poster sheets');
+  return doc.save();
+}
+async function buildPptx(){
+  const groups = {};
+  for (const sh of sheets.filter(s => s.items.length)){ const k = sh.size+'-'+sh.orient; (groups[k] ||= {list:[], sh}).list.push(sh); }
+  const out = [];
+  for (const [k,g] of Object.entries(groups)){
+    const [W,H] = sheetWH(g.sh);
+    const p = new PptxGenJS();
+    p.defineLayout({name:'SHEET', width:W/MM_PER_IN, height:H/MM_PER_IN}); p.layout = 'SHEET';
+    for (const sh of g.list){
+      const s = p.addSlide(); s.background = {color:'FFFFFF'};
+      for (const it of sh.items){
+        const img = imgById(it.id), [bw,bh] = boxWH(it);
+        const d = await blobToDataURL(await exportJpeg(img,it.rot));
+        s.addImage({data:d.replace(/^data:/,''), x:it.x/MM_PER_IN, y:it.y/MM_PER_IN, w:bw/MM_PER_IN, h:bh/MM_PER_IN, altText:img.name});
+      }
+    }
+    out.push({name:`poster-sheets-${SHEETS[g.sh.size].n.replace(/[^A-Za-z0-9]+/g,'')}-${g.sh.orient}-${stamp()}.pptx`, blob: await p.write({outputType:'blob'})});
+  }
+  return out;
+}
+
+$('#pdfBtn').onclick = async () => {
+  if (!sheets.length) return toast('Add some images first');
+  if (!window.PDFLib) return toast('PDF maker is still loading — try again in a moment');
+  warnBeforeExport(); busy(true,'Building print PDF at full resolution…');
+  try { const bytes = await buildPdf(); busy(false); if (await saveFile(`poster-sheets-${stamp()}.pdf`, new Blob([bytes],{type:'application/pdf'}))) toast('PDF saved'); }
+  catch(e){ busy(false); toast('PDF failed: '+(e.message||e)); console.error(e); }
+};
+$('#pptxBtn').onclick = async () => {
+  if (!sheets.length) return toast('Add some images first');
+  if (!window.PptxGenJS) return toast('PowerPoint maker is still loading — try again in a moment');
+  warnBeforeExport(); busy(true,'Building editable file…');
+  try {
+    const files = await buildPptx(); busy(false);
+    if (files.length>1) toast(`Your sheets use ${files.length} paper sizes, so you'll get ${files.length} files (one per size).`);
+    for (const f of files){ if (!await saveFile(f.name, f.blob)) return; }
+    toast(files.length>1 ? 'Editable files saved' : 'Editable file saved');
+  } catch(e){ busy(false); toast('Export failed: '+(e.message||e)); console.error(e); }
+};
+
+/* ---------- project save/open ---------- */
+$('#saveProj').onclick = async () => {
+  if (!images.length) return toast('Nothing to save yet');
+  busy(true,'Packing project…');
+  try {
+    const imgs = [];
+    for (const i of images){ const {blob,url,...rest} = i; imgs.push({...rest, data: await blobToDataURL(blob)}); }
+    const json = JSON.stringify({app:'poster-sheet-builder', v:1, S, uid, images:imgs, sheets});
+    busy(false);
+    if (await saveFile(`poster-project-${stamp()}.json`, json)) toast('Project saved — use “Open project” to continue later');
+  } catch(e){ busy(false); toast('Save failed: '+(e.message||e)); }
+};
+$('#openProj').onclick = () => $('#projIn').click();
+$('#projIn').onchange = async e => {
+  const f = e.target.files[0]; e.target.value=''; if (!f) return;
+  busy(true,'Opening project…');
+  try {
+    const p = JSON.parse(await f.text());
+    if (p.app!=='poster-sheet-builder') throw new Error('not a Poster Sheet Builder project');
+    snapshot();
+    S = {...S, ...p.S}; uid = Math.max(p.uid||1, uid);
+    images = p.images.map(({data,...rest}) => { const blob = dataURLToBlob(data); return {...rest, blob, url:URL.createObjectURL(blob)}; });
+    sheets = p.sheets; selected=null; expCache.clear();
+    syncSettings(); render(); toast('Project opened');
+  } catch(err){ toast('Couldn’t open: '+(err.message||err)); }
+  busy(false);
+};
+
+/* ---------- misc ---------- */
+let toastT;
+function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'), 4200); }
+function busy(on, t){ const b=$('#busy'); if (t) b.textContent=t; b.classList.toggle('show', !!on); }
+
+buildSettings(); render();
+(async () => {
+  try { if (window.claude && window.claude.use) DL = await window.claude.use('downloads'); } catch(_){ DL = null; }
+})();
+</script>
+</body>
+</html>
