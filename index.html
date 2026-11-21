@@ -134,6 +134,19 @@ code{background:#f1eee9;border-radius:4px;padding:1px 5px;font-size:12.5px}
 .ghost{position:fixed;z-index:80;pointer-events:none;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.28);outline:2px solid var(--accent);opacity:.92}
 .ghost img{position:absolute;left:0;top:0;width:100%;height:100%}
 .ghost img.rot{left:50%;top:50%;transform:translate(-50%,-50%) rotate(90deg)}
+/* floating image toolbar */
+.imgbar{position:fixed;z-index:65;display:none;align-items:center;gap:4px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.16);padding:5px 6px;font-size:12.5px;max-width:min(900px,calc(100vw - 24px))}
+.imgbar.show{display:flex}
+.imgbar .grp{display:flex;align-items:center;gap:3px;padding:0 4px}
+.imgbar .grp + .grp{border-left:1px solid var(--line)}
+.imgbar .qual{margin:0;white-space:nowrap}
+.imgbar select{border:1px solid var(--line);border-radius:6px;padding:3px 4px;background:#fff;font-size:12px;max-width:150px}
+.imgbar input[type=number]{width:58px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;font-size:12px}
+.imgbar button{border:1px solid transparent;background:none;border-radius:6px;padding:3px 7px;font-size:12.5px;white-space:nowrap}
+.imgbar button:hover{background:#f1eee9;border-color:var(--line)}
+.imgbar button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.imgbar .del:hover{color:var(--bad)}
+.imgbar .lbl{color:var(--muted)}
 .newsheet{border:2px dashed #b9b2a6;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:13px;padding:14px;width:170px;min-height:170px;margin-top:48px;line-height:1.4}
 @media (max-width:860px){.main{flex-direction:column}.side{width:auto;max-height:45vh;border-right:0;border-bottom:1px solid var(--line)}}
 </style>
@@ -199,6 +212,7 @@ code{background:#f1eee9;border-radius:4px;padding:1px 5px;font-size:12.5px}
   </aside>
   <section class="stage" id="stage"></section>
 </div>
+<div class="imgbar" id="imgbar"></div>
 <div class="tip" id="tip"></div>
 <div class="toast" id="toast"></div>
 <div class="busy" id="busy">Working…</div>
@@ -421,7 +435,7 @@ function undo(){
 
 /* ---------- rendering ---------- */
 function ppm(){ return S.zoom; } // px per mm
-function render(){ renderStage(); renderList(); }
+function render(){ renderStage(); renderList(); renderToolbar(); }
 
 function renderStage(){
   const st = $('#stage');
@@ -475,8 +489,8 @@ function renderStage(){
     <span class="zoom">Zoom <input type="range" id="zoomIn" min="0.4" max="2.5" step="0.1" value="${S.zoom}"></span></div>
     <div class="tray" id="tray"><div class="tlabel"><b>Parking area</b><br>${parked.length?'Drag these onto any sheet. Parked images aren’t printed.':'Drop images here to set them aside while you rearrange.'}</div>${trayHTML}</div>
     <div class="sheets">${html}<div class="newsheet" id="newsheet">Drop an image here<br>to start a new sheet</div></div>
-    <p class="hint" style="margin-top:22px">Drag images to move them — onto another sheet, the parking area, or “new sheet” · drag the corner square to resize · dot = sharpness (green sharp, amber slightly soft, red pixelated) · dashed line = paper-edge border (not printed) · rulers are in cm; the shaded band shows the selected image.</p>`;
-  $('#zoomIn').oninput = e => { S.zoom = +e.target.value; renderStage(); };
+    <p class="hint" style="margin-top:22px">Click an image for its menu (size, turn, move, delete) · drag images to move them — onto another sheet, the parking area, or “new sheet” · drag the corner square to resize · dot = sharpness (green sharp, amber slightly soft, red pixelated) · dashed line = paper-edge border (not printed) · rulers are in cm; the shaded band shows the selected image.</p>`;
+  $('#zoomIn').oninput = e => { S.zoom = +e.target.value; renderStage(); placeToolbar(); };
   if (selected) updateBands(selected);
 }
 
@@ -538,6 +552,7 @@ function select(id, scroll){
   document.querySelectorAll('.item.sel,.row.sel,.parked.sel').forEach(e => e.classList.remove('sel'));
   document.querySelectorAll(`[data-id="${id}"]`).forEach(e => { if (['item','row','parked'].some(c => e.classList.contains(c))) e.classList.add('sel'); });
   updateBands(id);
+  renderToolbar();
   if (scroll){ const el = document.querySelector(`.${scroll}[data-id="${id}"]`); if (el) el.scrollIntoView({block:'nearest', inline:'nearest', behavior:'smooth'}); }
 }
 
@@ -573,24 +588,52 @@ function syncSettings(){
 }
 
 /* ---------- list events ---------- */
+/* ---------- per-image actions (shared by the side list and the floating toolbar) ----------
+   These change one image where it sits; they never re-pack the other sheets. */
+const clamp = (v,a,b) => Math.min(Math.max(v,a), Math.max(a,b));
+// resize an item on its sheet, keeping its centre where it was
+function setItemSize(loc, iw, ih, rot){
+  const {sh, it} = loc, [bw0,bh0] = boxWH(it), cx = it.x+bw0/2, cy = it.y+bh0/2;
+  Object.assign(it, fitItem(sh, iw, ih, rot ?? it.rot));
+  const [W,H] = sheetWH(sh), [bw,bh] = boxWH(it);
+  it.x = clamp(cx-bw/2, 0, W-bw); it.y = clamp(cy-bh/2, 0, H-bh);
+}
+function imageAction(id, act, v){
+  const img = imgById(id); if (!img) return;
+  let loc = locate(id);
+  if (['grow','shrink','width','turn'].includes(act) && !loc) return;
+  if (act==='width' && !(v*10 > 5)) { render(); return; }
+  snapshot();
+  const resizeToSetting = () => { if (loc){ const [w,h] = wantedDims(img); setItemSize(loc, w, h); } };
+  if (act==='view'){ img.view = v; if (img.size!=='custom') resizeToSetting(); }
+  else if (act==='isize'){ img.size = v; if (v!=='custom') img.customW = null; resizeToSetting(); }
+  else if (act==='grow' || act==='shrink' || act==='width'){
+    const nw = act==='width' ? v*10 : loc.it.iw * (act==='grow' ? 1.1 : 1/1.1);
+    setItemSize(loc, nw, nw * img.ph / img.pw);
+    img.size = 'custom'; img.customW = loc.it.iw;
+    if (act==='width' && Math.abs(loc.it.iw - nw) > 0.5) toast(`Capped at ${cm(loc.it.iw)} cm wide — that's as big as fits on this sheet`);
+  }
+  else if (act==='turn'){ setItemSize(loc, loc.it.iw, loc.it.ih, !loc.it.rot); }
+  else if (act==='own'){ img.own = v; if (v){ moveToSheet(id, 'new'); sheets = sheets.filter(s => s.items.length); } }
+  else if (act==='move'){ moveToSheet(id, v==='new'||v==='park' ? v : +v); sheets = sheets.filter(s => s.items.length); }
+  else if (act==='remove'){
+    images = images.filter(i => i.id!==id);
+    sheets.forEach(sh => sh.items = sh.items.filter(it => it.id!==id)); sheets = sheets.filter(s => s.items.length);
+    if (selected===id) selected = null; render(); return;
+  }
+  selected = id; render();
+  loc = locate(id);
+  if (loc && clashes(loc.sh).has(id) && act!=='move') toast('Now overlapping another image — drag it into a gap, or press “Tidy” on that sheet.');
+}
 $('#list').addEventListener('change', e => {
   const row = e.target.closest('.row'); if (!row) return;
-  const id = +row.dataset.id, img = imgById(id), act = e.target.dataset.act;
-  snapshot();
-  if (act==='view'){ img.view = e.target.value; autoArrange(); }
-  else if (act==='isize'){ img.size = e.target.value; if (img.size!=='custom') img.customW=null; autoArrange(); }
-  else if (act==='own'){ img.own = e.target.checked; autoArrange(); }
-  else if (act==='move'){ const v=e.target.value; moveToSheet(id, v==='new'||v==='park'?v:+v); sheets = sheets.filter(s=>s.items.length); }
-  selected = id; render();
+  const act = e.target.dataset.act;
+  imageAction(+row.dataset.id, act, act==='own' ? e.target.checked : e.target.value);
 });
 $('#list').addEventListener('click', e => {
   const row = e.target.closest('.row'); if (!row) return;
   const id = +row.dataset.id, act = e.target.dataset.act;
-  if (act==='remove'){
-    snapshot(); images = images.filter(i => i.id!==id);
-    sheets.forEach(sh => sh.items = sh.items.filter(it => it.id!==id)); sheets = sheets.filter(s => s.items.length);
-    if (selected===id) selected=null; render(); return;
-  }
+  if (act==='remove'){ imageAction(id, 'remove'); return; }
   if (e.target.closest('select,input,label')) return;
   select(id, 'item');
 });
@@ -614,7 +657,9 @@ let drag = null;
 const snapState = () => ({S:{...S}, images:images.map(i=>({...i})), sheets:JSON.parse(JSON.stringify(sheets)), selected});
 stage.addEventListener('pointerdown', e => {
   if (e.button !== 0) return;
-  const el = e.target.closest('.item, .parked'); if (!el) return;
+  const el = e.target.closest('.item, .parked');
+  if (!el){ if (selected && !e.target.closest('button,select,input,label')) select(null); return; }
+  $('#imgbar').classList.remove('show');
   e.preventDefault();
   const id = +el.dataset.id; select(id, 'row'); hideTip();
   const k = ppm(), r = el.getBoundingClientRect();
@@ -703,7 +748,7 @@ window.addEventListener('pointerup', e => {
   const d = drag; drag = null; hideTip(); markTarget(null);
   d.el.style.pointerEvents = '';
   const ghosted = !!d.ghost; clearGhost(d);
-  if (!d.moved) return;
+  if (!d.moved){ renderToolbar(); return; }
   const commit = () => { history.push(d.snap); if (history.length>60) history.shift(); $('#undoBtn').disabled=false; };
   if (d.mode==='resize'){ commit(); const img = imgById(d.it.id); img.size='custom'; img.customW=d.it.iw; render(); return; }
   if (!ghosted){ commit(); render(); return; } // moved within its own sheet
@@ -762,11 +807,61 @@ document.addEventListener('drop', e => { e.preventDefault(); document.body.class
 $('#arrangeBtn').onclick = () => { if (!images.length) return; snapshot(); autoArrange(); render(); toast('Re-packed all sheets'); };
 $('#undoBtn').onclick = undo;
 document.addEventListener('keydown', e => {
+  if (e.key==='Escape' && selected && !e.target.closest('input,select')){ select(null); return; }
   if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && !e.target.closest('input,select')){ e.preventDefault(); undo(); }
   if ((e.key==='Delete'||e.key==='Backspace') && selected && !e.target.closest('input,select')){
     const btn = document.querySelector(`.row[data-id="${selected}"] [data-act="remove"]`); if (btn) btn.click();
   }
 });
+
+/* ---------- floating image toolbar (Canva-style) ---------- */
+const imgbar = $('#imgbar');
+function renderToolbar(){
+  const loc = selected ? locate(selected) : null;
+  if (!loc || drag){ imgbar.classList.remove('show'); return; }
+  const img = imgById(selected), it = loc.it, q = quality(img, it.iw);
+  const si = sheets.indexOf(loc.sh);
+  const sizes = [['auto','Biggest sharp'],['A6','Fit A6'],['A5','Fit A5'],['A4','Fit A4'],['A3','Fit A3'],['full','Fill the sheet']];
+  if (img.size==='custom') sizes.push(['custom','Custom']);
+  imgbar.innerHTML = `
+    <div class="grp"><span class="qual ${q}" title="Sharpness at this size">${QTEXT[q]}</span></div>
+    <div class="grp"><span class="lbl">W</span><input type="number" data-tb="width" min="1" step="0.5" value="${cm(it.iw)}" title="Width in cm (height follows)"><span class="lbl">× ${cm(it.ih)} cm</span>
+      <button data-tb="shrink" title="10% smaller">−</button><button data-tb="grow" title="10% bigger">+</button></div>
+    <div class="grp"><select data-tb="isize" title="Size preset">${sizes.map(([v,l]) => `<option value="${v}"${img.size===v?' selected':''}>${l}</option>`).join('')}</select></div>
+    <div class="grp"><select data-tb="view" title="How it will be seen">${['default','close','wall','far'].map(v => `<option value="${v}"${img.view===v?' selected':''}>${v==='default'?'Seen: same as all':'Seen: '+VIEWS[v].label}</option>`).join('')}</select></div>
+    <div class="grp"><button data-tb="turn" title="Turn 90° on the sheet">⟳ Turn</button>
+      <select data-tb="move" title="Move to another sheet">${sheets.map((_,i) => `<option value="${i}"${i===si?' selected':''}>Sheet ${i+1}</option>`).join('')}<option value="new">→ New sheet</option><option value="park">→ Park it</option></select>
+      <button data-tb="own" class="${img.own?'on':''}" title="Give it a sheet of its own">Own sheet</button></div>
+    <div class="grp"><button data-tb="remove" class="del" title="Remove this image">🗑</button></div>`;
+  imgbar.classList.add('show');
+  placeToolbar();
+}
+function placeToolbar(){
+  if (!imgbar.classList.contains('show')) return;
+  const el = document.querySelector(`.item[data-id="${selected}"]`); if (!el){ imgbar.classList.remove('show'); return; }
+  const r = el.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+  if (r.bottom < sr.top + 10 || r.top > sr.bottom - 10){ imgbar.style.visibility = 'hidden'; return; }
+  imgbar.style.visibility = '';
+  const tw = imgbar.offsetWidth, th = imgbar.offsetHeight;
+  let top = r.top - th - 10;
+  if (top < sr.top + 4) top = r.bottom + 10;                 // no room above: go below
+  if (top + th > window.innerHeight - 4) top = Math.max(sr.top + 4, r.top + 8); // no room below either: overlay the top edge
+  const left = clamp(r.left + r.width/2 - tw/2, sr.left + 6, window.innerWidth - tw - 8);
+  imgbar.style.top = top + 'px'; imgbar.style.left = left + 'px';
+}
+stage.addEventListener('scroll', placeToolbar);
+window.addEventListener('resize', placeToolbar);
+imgbar.addEventListener('pointerdown', e => e.stopPropagation());
+imgbar.addEventListener('click', e => {
+  const b = e.target.closest('button[data-tb]'); if (!b || !selected) return;
+  const a = b.dataset.tb;
+  imageAction(selected, a, a==='own' ? !imgById(selected).own : undefined);
+});
+imgbar.addEventListener('change', e => {
+  const a = e.target.dataset.tb; if (!a || !selected) return;
+  imageAction(selected, a, a==='width' ? parseFloat(e.target.value) : e.target.value);
+});
+imgbar.addEventListener('keydown', e => { if (e.key==='Enter' && e.target.dataset.tb==='width') e.target.blur(); });
 
 /* ---------- export helpers ---------- */
 function blobToDataURL(b){ return new Promise((res,rej) => { const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(b); }); }
